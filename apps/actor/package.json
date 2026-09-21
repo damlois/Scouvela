@@ -1,0 +1,26 @@
+{
+  "name": "@scouvela/actor",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "start": "tsx src/main.ts",
+    "dev": "tsx watch src/main.ts",
+    "build": "tsc -p tsconfig.json",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "lint": "eslint src test --max-warnings=0",
+    "test": "vitest run"
+  },
+  "dependencies": {
+    "@scouvela/shared": "workspace:*",
+    "apify": "^3.4.2",
+    "crawlee": "^3.13.5",
+    "zod": "^3.24.2"
+  },
+  "devDependencies": {
+    "@types/node": "^22.13.10",
+    "tsx": "^4.19.3",
+    "typescript": "^5.8.2",
+    "vitest": "^3.0.9"
+  }
+}

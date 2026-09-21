@@ -1,0 +1,52 @@
+# Dependencies
+node_modules
+.pnpm-store
+
+# Environment and secrets
+.env
+.env.*
+!.env.example
+!.env*.example
+
+# Build outputs
+dist
+build
+out
+.next
+.turbo
+*.tsbuildinfo
+
+# Test and coverage
+coverage
+.nyc_output
+
+# Logs
+*.log
+npm-debug.log*
+pnpm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# OS and editors
+.DS_Store
+Thumbs.db
+.idea
+.vscode/*
+!.vscode/extensions.json
+*.swp
+
+# Apify local storage
+storage
+apify_storage
+.apify
+
+# Vercel
+.vercel
+
+# Playwright
+playwright-report
+test-results
+blob-report
+
+# Misc
+*.local

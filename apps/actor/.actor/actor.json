@@ -1,0 +1,15 @@
+{
+  "actorSpecification": 1,
+  "name": "scouvela-discovery",
+  "title": "Scouvela Discovery Actor",
+  "description": "Collects publicly listed Nigerian SME funding opportunities and local service providers for the Scouvela platform.",
+  "version": "0.1",
+  "buildTag": "latest",
+  "dockerfile": "./Dockerfile",
+  "dockerContextDir": "../..",
+  "input": "./input_schema.json",
+  "storages": {
+    "dataset": "./dataset_schema.json"
+  },
+  "environmentVariables": {}
+}

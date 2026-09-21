@@ -1,0 +1,13 @@
+**/node_modules
+**/.next
+**/.git
+**/dist
+**/coverage
+apps/web
+.git
+.env
+.env.*
+!.env.example
+storage
+apify_storage
+.vercel

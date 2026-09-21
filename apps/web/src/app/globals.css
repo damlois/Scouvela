@@ -1,0 +1,15 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --color-teal: #0b6b57;
+  --color-amber: #f5a623;
+  --color-charcoal: #17211e;
+  --color-mint: #f5faf8;
+}
+
+body {
+  color: var(--color-charcoal);
+  background: var(--color-mint);
+}

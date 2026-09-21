@@ -1,0 +1,59 @@
+{
+  "title": "Scouvela Discovery Actor input",
+  "type": "object",
+  "schemaVersion": 1,
+  "properties": {
+    "mode": {
+      "title": "Search mode",
+      "type": "string",
+      "description": "Whether to collect funding opportunities or local vendors.",
+      "enum": ["funding", "vendors"],
+      "default": "funding"
+    },
+    "query": {
+      "title": "Query",
+      "type": "string",
+      "description": "Free-text search query, for example 'MSME loan' or 'tailor'.",
+      "editor": "textfield"
+    },
+    "businessCategory": {
+      "title": "Business category",
+      "type": "string",
+      "description": "Optional SME category used when searching for funding.",
+      "editor": "textfield"
+    },
+    "serviceCategory": {
+      "title": "Service category",
+      "type": "string",
+      "description": "Optional vendor category such as tailor, baker, shoemaker, printer or packaging.",
+      "editor": "textfield"
+    },
+    "state": {
+      "title": "State",
+      "type": "string",
+      "description": "Nigerian state to focus the search, for example Lagos or Kano.",
+      "editor": "textfield"
+    },
+    "locality": {
+      "title": "Locality",
+      "type": "string",
+      "description": "City, LGA or neighbourhood within the selected state.",
+      "editor": "textfield"
+    },
+    "fundingType": {
+      "title": "Funding type",
+      "type": "string",
+      "description": "Optional funding filter. Ignored when mode is vendors.",
+      "enum": ["loan", "grant", "accelerator", "support-programme"]
+    },
+    "maxResults": {
+      "title": "Maximum results",
+      "type": "integer",
+      "description": "Maximum number of valid records to push to the dataset. Hard cap is 50.",
+      "minimum": 1,
+      "maximum": 50,
+      "default": 20
+    }
+  },
+  "required": ["mode"]
+}

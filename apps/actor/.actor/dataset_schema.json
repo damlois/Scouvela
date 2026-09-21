@@ -1,0 +1,102 @@
+{
+  "actorSpecification": 1,
+  "fields": {
+    "id": {
+      "type": "string",
+      "label": "ID",
+      "nullable": false
+    },
+    "title": {
+      "type": "string",
+      "label": "Title",
+      "nullable": true
+    },
+    "name": {
+      "type": "string",
+      "label": "Name",
+      "nullable": true
+    },
+    "provider": {
+      "type": "string",
+      "label": "Provider",
+      "nullable": true
+    },
+    "category": {
+      "type": "string",
+      "label": "Category",
+      "nullable": true
+    },
+    "fundingType": {
+      "type": "string",
+      "label": "Funding type",
+      "nullable": true
+    },
+    "status": {
+      "type": "string",
+      "label": "Status",
+      "nullable": true
+    },
+    "state": {
+      "type": "string",
+      "label": "State",
+      "nullable": true
+    },
+    "location": {
+      "type": "string",
+      "label": "Location",
+      "nullable": true
+    },
+    "sourceName": {
+      "type": "string",
+      "label": "Source name",
+      "nullable": false
+    },
+    "sourceUrl": {
+      "type": "string",
+      "format": "url",
+      "label": "Source URL",
+      "nullable": false
+    },
+    "discoveredAt": {
+      "type": "string",
+      "format": "date-time",
+      "label": "Discovered at",
+      "nullable": false
+    },
+    "verificationStatus": {
+      "type": "string",
+      "label": "Verification status",
+      "nullable": true
+    }
+  },
+  "views": {
+    "overview": {
+      "title": "Overview",
+      "transformation": {
+        "fields": [
+          "id",
+          "title",
+          "name",
+          "provider",
+          "category",
+          "sourceName",
+          "sourceUrl",
+          "discoveredAt"
+        ]
+      },
+      "display": {
+        "component": "table",
+        "properties": {
+          "id": { "label": "ID" },
+          "title": { "label": "Title" },
+          "name": { "label": "Name" },
+          "provider": { "label": "Provider" },
+          "category": { "label": "Category" },
+          "sourceName": { "label": "Source" },
+          "sourceUrl": { "label": "Source URL" },
+          "discoveredAt": { "label": "Discovered" }
+        }
+      }
+    }
+  }
+}

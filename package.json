@@ -1,0 +1,30 @@
+{
+  "name": "scouvela",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Apify-powered discovery platform for Nigerian SME funding and local service providers.",
+  "packageManager": "pnpm@9.15.9",
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "predev": "pnpm --filter @scouvela/shared build",
+    "dev": "pnpm --filter @scouvela/web dev",
+    "dev:web": "pnpm --filter @scouvela/web dev",
+    "dev:actor": "pnpm --filter @scouvela/actor start",
+    "build": "pnpm --filter @scouvela/shared build && pnpm --filter @scouvela/web build && pnpm --filter @scouvela/actor build",
+    "lint": "eslint packages/shared apps/actor && pnpm --filter @scouvela/web lint",
+    "typecheck": "pnpm -r --if-present typecheck",
+    "test": "pnpm -r --if-present test",
+    "format": "prettier --write .",
+    "format:check": "prettier --check ."
+  },
+  "devDependencies": {
+    "@eslint/js": "^9.21.0",
+    "eslint": "^9.21.0",
+    "eslint-config-prettier": "^10.0.2",
+    "prettier": "^3.5.3",
+    "typescript": "^5.8.2",
+    "typescript-eslint": "^8.26.1"
+  }
+}
