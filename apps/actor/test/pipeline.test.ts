@@ -3,7 +3,7 @@ import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { describe, expect, it } from 'vitest';
 import { actorInputSchema } from '@scouvela/shared';
-import { parseBoiDetailHtml, parseBoiIndexHtml } from '../src/sources/funding/boi-funding-source.js';
+import { inferFundingType, parseBoiDetailHtml, parseBoiIndexHtml } from '../src/sources/funding/boi-funding-source.js';
 import { parseFinelibDetailHtml, parseFinelibIndexHtml } from '../src/sources/vendors/finelib-vendor-source.js';
 import { calculateFundingStatus, normalizeDeadline, parseDeadline } from '../src/utils/dates.js';
 import { toAbsoluteUrl } from '../src/utils/urls.js';
@@ -70,6 +70,15 @@ describe('funding index parsing', () => {
     ]);
     expect(parsed.nextIndexUrls).toContain('https://www.boi.ng/product-category/smes/page/2/');
   });
+
+  it('keeps loan cards and drops index cards that clearly state another type', () => {
+    const parsed = parseBoiIndexHtml(
+      readFixture('boi-index.html'),
+      'https://www.boi.ng/product-category/smes/',
+      { ...fundingInput, fundingType: 'loan' },
+    );
+    expect(parsed.detailUrls).toEqual(['https://www.boi.ng/product/sme-working-capital-loan/']);
+  });
 });
 
 describe('funding detail parsing', () => {
@@ -86,6 +95,31 @@ describe('funding detail parsing', () => {
     expect(record?.deadline).toBeUndefined();
     expect(record?.applicationsOpen).toBe(true);
     expect(record?.sourceUrl).toBe('https://www.boi.ng/product/sme-working-capital-loan/');
+  });
+
+  it('classifies a matching fund from stated page language', () => {
+    expect(inferFundingType('These are collaborative funding schemes between BOI and other partner institutions')).toBe(
+      'support-programme',
+    );
+    expect(inferFundingType('State Matching Fund')).toBe('support-programme');
+  });
+
+  it('skips a loan page when the input asks for a grant', () => {
+    const record = parseBoiDetailHtml(
+      readFixture('boi-detail.html'),
+      'https://www.boi.ng/product/sme-working-capital-loan/',
+      { ...fundingInput, fundingType: 'grant' },
+    );
+    expect(record).toBeNull();
+  });
+
+  it('does not treat an empty product body as a record', () => {
+    const record = parseBoiDetailHtml(
+      '<main id="content"><h1 class="entry-title">Waste Management Product Programme</h1><div class="page-content"></div></main>',
+      'https://www.boi.ng/product/waste-management-product-programme/',
+      fundingInput,
+    );
+    expect(record).toBeNull();
   });
 
   it('keeps an explicit past deadline so status can be expired', () => {
@@ -251,14 +285,16 @@ describe('pipeline validation', () => {
     expect(saved[0]?.verificationStatus).toBe('source-listed');
   });
 
-  it('does not invent a funding type when the page does not state one', () => {
+  it('saves a public listing without inventing a funding type', () => {
     const transformed = transformFundingRecord({
       title: 'Unspecified Window',
       provider: 'Bank of Industry',
       sourceUrl: 'https://www.boi.ng/product/unspecified-window/',
       sourceName: 'Bank of Industry',
     });
-    expect(transformed).toBeNull();
+    expect(transformed?.title).toBe('Unspecified Window');
+    expect(transformed?.fundingType).toBeUndefined();
+    expect(transformed?.sourceUrl).toBe('https://www.boi.ng/product/unspecified-window');
   });
 
   it('labels vendors as source-listed', () => {

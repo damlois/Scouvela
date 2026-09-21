@@ -1,0 +1,6 @@
+node_modules
+storage
+test
+coverage
+!bundled-shared
+!bundled-shared/**

@@ -26,8 +26,8 @@ export function formatDate(value: string): string {
   }).format(date);
 }
 
-export function formatFundingType(type: FundingType): string {
-  return FUNDING_TYPE_LABELS[type];
+export function formatFundingType(type: FundingType | undefined): string {
+  return type ? FUNDING_TYPE_LABELS[type] : 'Type not stated';
 }
 
 export function formatServiceCategory(category: string): string {

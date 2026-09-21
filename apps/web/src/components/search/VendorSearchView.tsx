@@ -15,12 +15,12 @@ import {
   defaultVendorFilters,
   describeVendorResults,
   getVendorActiveFilters,
-  searchVendors,
+  sortVendors,
   toVendorSearchRequest,
   type VendorFilters,
   type VendorSort,
 } from '@/lib/search';
-import { getSearchDelayMs, wait } from '@/lib/utils';
+import { requestSearch, SearchApiError } from '@/lib/search-api';
 
 type FormValues = {
   query: string;
@@ -37,7 +37,7 @@ const emptyForm: FormValues = {
   serviceCategory: '',
   state: '',
   locality: '',
-  maxResults: 20,
+  maxResults: 5,
 };
 
 const sortOptions = [
@@ -87,6 +87,9 @@ export function VendorSearchView({
   const [sort, setSort] = useState<VendorSort>(initialSort);
   const [status, setStatus] = useState<ViewStatus>(previewError ? 'error' : 'idle');
   const [results, setResults] = useState<Vendor[]>([]);
+  const [errorMessage, setErrorMessage] = useState(
+    'We could not finish that search. Please try again.',
+  );
   const [errors, setErrors] = useState<Partial<Record<'query' | 'maxResults', string>>>({});
 
   const activeFilters = useMemo(() => getVendorActiveFilters(filters), [filters]);
@@ -110,9 +113,15 @@ export function VendorSearchView({
         if (issue.path[0] === 'query')
           fieldErrors.query = 'Enter a shorter keyword, up to 200 characters.';
         if (issue.path[0] === 'maxResults')
-          fieldErrors.maxResults = 'Choose between 1 and 50 results.';
+          fieldErrors.maxResults = 'Choose between 1 and 20 results.';
       }
       setErrors(fieldErrors);
+      return;
+    }
+
+    if (!nextFilters.serviceCategory && !nextFilters.query) {
+      setErrorMessage('Choose a service category such as tailoring, or enter a keyword.');
+      setStatus('error');
       return;
     }
 
@@ -122,10 +131,24 @@ export function VendorSearchView({
     setStatus('loading');
     persist(nextFilters, nextSort);
 
-    await wait(getSearchDelayMs());
-    const found = searchVendors(parsed.data, nextSort);
-    setResults(found);
-    setStatus(found.length === 0 ? 'empty' : 'success');
+    try {
+      const response = await requestSearch(parsed.data);
+      if (response.mode !== 'vendors') {
+        throw new SearchApiError('Search returned an unexpected result set.', 502);
+      }
+
+      const found = sortVendors(response.results, nextSort, nextFilters.query);
+      setResults(found);
+      setStatus(found.length === 0 ? 'empty' : 'success');
+    } catch (error) {
+      setResults([]);
+      setErrorMessage(
+        error instanceof SearchApiError
+          ? error.message
+          : 'We could not finish that search. Please try again.',
+      );
+      setStatus('error');
+    }
   }
 
   function onSubmit(event: FormEvent<HTMLFormElement>) {
@@ -187,11 +210,25 @@ export function VendorSearchView({
       {status === 'idle' ? (
         <InitialState
           title="Browse Lagos service listings"
-          body="Anyone can search — for home, an event, or a business. This demonstration dataset currently focuses on Lagos. Try a service category and a locality such as Yaba or Ikeja. These vendors are fictional sample listings."
+          body="Anyone can search — for home, an event, or a business. Live results currently come from Finelib Lagos category pages. Try tailoring in Ikeja or Yaba. Confirm every listing at the original source."
           examples={[
             {
+              label: 'Tailoring in Ikeja',
+              description: 'Lagos tailoring listings filtered to Ikeja.',
+              onSelect: () => {
+                const next = {
+                  ...emptyForm,
+                  serviceCategory: 'tailoring',
+                  state: 'Lagos',
+                  locality: 'Ikeja',
+                };
+                setValues(next);
+                void runSearch(filtersFromVendorForm(next));
+              },
+            },
+            {
               label: 'Tailoring in Yaba',
-              description: 'Made-to-measure and alteration workshops.',
+              description: 'Lagos tailoring listings filtered to Yaba.',
               onSelect: () => {
                 const next = {
                   ...emptyForm,
@@ -204,22 +241,8 @@ export function VendorSearchView({
               },
             },
             {
-              label: 'Baking in Surulere',
-              description: 'Wholesale bread, cakes and snack packs.',
-              onSelect: () => {
-                const next = {
-                  ...emptyForm,
-                  serviceCategory: 'baking',
-                  state: 'Lagos',
-                  locality: 'Surulere',
-                };
-                setValues(next);
-                void runSearch(filtersFromVendorForm(next));
-              },
-            },
-            {
               label: 'Printing in Lagos',
-              description: 'Labels, flyers and short-run print shops.',
+              description: 'Public print-shop listings for Lagos.',
               onSelect: () => {
                 const next = { ...emptyForm, serviceCategory: 'printing', state: 'Lagos' };
                 setValues(next);
@@ -230,11 +253,17 @@ export function VendorSearchView({
         />
       ) : null}
 
-      {status === 'loading' ? <LoadingState label="Searching the demo vendor dataset" /> : null}
+      {status === 'loading' ? (
+        <LoadingState label="Searching public vendor listings. This can take up to a minute." />
+      ) : null}
 
       {status === 'error' ? (
         <ErrorState
-          message="This is the development error preview. Retry to search the local demo data, or reset to start again."
+          message={
+            previewError
+              ? 'This is the development error preview. Retry to run a live search, or reset to start again.'
+              : errorMessage
+          }
           onRetry={() => void runSearch(filtersFromVendorForm(values), sort)}
           onReset={resetAll}
         />
@@ -251,7 +280,9 @@ export function VendorSearchView({
             sortOptions={sortOptions}
             onSortChange={(value) => {
               const nextSort = value as VendorSort;
-              void runSearch(filters, nextSort);
+              setSort(nextSort);
+              persist(filters, nextSort);
+              setResults((current) => sortVendors(current, nextSort, filters.query));
             }}
             onClearFilters={resetAll}
             canClear={activeFilters.length > 0}

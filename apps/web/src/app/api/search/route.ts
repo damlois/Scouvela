@@ -11,6 +11,8 @@ import { getServerEnv } from '@/lib/env';
 import { getMockSearchResponse } from '@/lib/search';
 
 export const runtime = 'nodejs';
+export const dynamic = 'force-dynamic';
+export const maxDuration = 180;
 
 function errorResponse(code: ApiErrorCode, message: string, status: number) {
   const payload: ApiError = { error: { code, message } };

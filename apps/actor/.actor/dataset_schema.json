@@ -1,78 +1,74 @@
 {
   "actorSpecification": 1,
   "fields": {
-    "id": {
-      "type": "string",
-      "label": "ID",
-      "nullable": false
+    "$schema": "http://json-schema.org/draft-07/schema#",
+    "type": "object",
+    "properties": {
+      "id": {
+        "type": "string",
+        "title": "ID"
+      },
+      "kind": {
+        "type": "string",
+        "title": "Kind"
+      },
+      "title": {
+        "type": ["string", "null"],
+        "title": "Title"
+      },
+      "name": {
+        "type": ["string", "null"],
+        "title": "Name"
+      },
+      "provider": {
+        "type": ["string", "null"],
+        "title": "Provider"
+      },
+      "fundingType": {
+        "type": ["string", "null"],
+        "title": "Funding type"
+      },
+      "category": {
+        "type": ["string", "null"],
+        "title": "Category"
+      },
+      "status": {
+        "type": ["string", "null"],
+        "title": "Status"
+      },
+      "verificationStatus": {
+        "type": ["string", "null"],
+        "title": "Verification status"
+      },
+      "state": {
+        "type": ["string", "null"],
+        "title": "State"
+      },
+      "locality": {
+        "type": ["string", "null"],
+        "title": "Locality"
+      },
+      "deadline": {
+        "type": ["string", "null"],
+        "title": "Deadline"
+      },
+      "sourceName": {
+        "type": "string",
+        "title": "Source name"
+      },
+      "sourceUrl": {
+        "type": "string",
+        "format": "uri",
+        "title": "Source URL"
+      },
+      "discoveredAt": {
+        "type": "string",
+        "format": "date-time",
+        "title": "Discovered at"
+      }
     },
-    "kind": {
-      "type": "string",
-      "label": "Kind",
-      "nullable": false
-    },
-    "title": {
-      "type": "string",
-      "label": "Title",
-      "nullable": true
-    },
-    "name": {
-      "type": "string",
-      "label": "Name",
-      "nullable": true
-    },
-    "provider": {
-      "type": "string",
-      "label": "Provider",
-      "nullable": true
-    },
-    "category": {
-      "type": "string",
-      "label": "Category",
-      "nullable": true
-    },
-    "status": {
-      "type": "string",
-      "label": "Status",
-      "nullable": true
-    },
-    "verificationStatus": {
-      "type": "string",
-      "label": "Verification status",
-      "nullable": true
-    },
-    "state": {
-      "type": "string",
-      "label": "State",
-      "nullable": true
-    },
-    "locality": {
-      "type": "string",
-      "label": "Locality",
-      "nullable": true
-    },
-    "deadline": {
-      "type": "string",
-      "label": "Deadline",
-      "nullable": true
-    },
-    "sourceName": {
-      "type": "string",
-      "label": "Source name",
-      "nullable": false
-    },
-    "sourceUrl": {
-      "type": "string",
-      "format": "url",
-      "label": "Source URL",
-      "nullable": false
-    },
-    "discoveredAt": {
-      "type": "string",
-      "format": "date-time",
-      "label": "Discovered at",
-      "nullable": false
-    }
+    "required": ["id", "kind", "sourceName", "sourceUrl", "discoveredAt"],
+    "additionalProperties": true
   },
   "views": {
     "overview": {
@@ -83,6 +79,7 @@
           "title",
           "name",
           "provider",
+          "fundingType",
           "category",
           "status",
           "verificationStatus",
@@ -101,6 +98,7 @@
           "title": { "label": "Title" },
           "name": { "label": "Name" },
           "provider": { "label": "Provider" },
+          "fundingType": { "label": "Funding type" },
           "category": { "label": "Category" },
           "status": { "label": "Status" },
           "verificationStatus": { "label": "Verification" },

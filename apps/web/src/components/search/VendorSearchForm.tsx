@@ -48,8 +48,8 @@ export function VendorSearchForm({
           aria-describedby={errors.query ? 'vendor-query-error' : 'vendor-demo-hint'}
         />
         <p id="vendor-demo-hint" className="mt-1 text-sm text-muted">
-          Demo listings currently focus on Lagos localities such as Yaba, Surulere, Ikeja, Lekki and
-          Victoria Island.
+          Live search currently uses Finelib Lagos category pages. Locality filters such as Ikeja or
+          Yaba are applied to listing text.
         </p>
         {errors.query ? (
           <p id="vendor-query-error" className="mt-1 text-sm text-error" role="alert">

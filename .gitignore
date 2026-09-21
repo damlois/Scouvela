@@ -13,6 +13,7 @@ dist
 build
 out
 .next
+.next-dev
 .turbo
 *.tsbuildinfo
 
@@ -41,6 +42,7 @@ apps/actor/storage/datasets/
 apps/actor/storage/request_queues/
 apps/actor/storage/key_value_stores/default/*
 !apps/actor/storage/key_value_stores/default/INPUT.json
+apps/actor/bundled-shared
 apify_storage
 .apify
 

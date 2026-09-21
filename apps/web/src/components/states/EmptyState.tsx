@@ -6,11 +6,11 @@ type EmptyStateProps = {
 const copy = {
   funding: {
     title: 'No funding matches these filters',
-    body: 'Nothing in the demo dataset matched this search. Try a broader keyword, another state, or leave funding type set to All.',
+    body: 'Nothing matched this search on the public funding source. Try a broader keyword, or leave funding type set to All.',
   },
   vendors: {
     title: 'No vendors match these filters',
-    body: 'The current demo listings focus on Lagos. Try another locality, a different service category, or clear the keyword.',
+    body: 'Live vendor listings currently cover Lagos category pages. Try Ikeja or Yaba, another service category, or clear the keyword.',
   },
 };
 

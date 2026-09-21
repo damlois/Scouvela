@@ -1,10 +1,11 @@
 import { load } from 'cheerio';
+import { log } from 'crawlee';
 import type { FundingType, ParsedActorInput } from '@scouvela/shared';
 import {
   CRAWL_MAX_INDEX_PAGES,
   FUNDING_SOURCE_APPROVAL_ENV,
 } from '../../config.js';
-import { emptyToUndefined, normalizeWhitespace, uniqueNonEmpty } from '../../utils/text.js';
+import { emptyToUndefined, uniqueNonEmpty } from '../../utils/text.js';
 import { isAllowedHttpUrl, toAbsoluteUrl } from '../../utils/urls.js';
 import type { HtmlRoot, IndexParseResult, PageLabel, SourceAdapter } from '../types.js';
 
@@ -63,7 +64,9 @@ export function inferFundingType(text: string): FundingType | undefined {
   const loan = /\bloans?\b/.test(normalized);
   const grant = /\bgrants?\b/.test(normalized);
   const accelerator = /\baccelerators?\b/.test(normalized);
-  const support = /support[- ]programme|intervention programme/.test(normalized);
+  const support = /support[- ]programme|intervention programme|matching fund|funding scheme/.test(
+    normalized,
+  );
   const matched: FundingType[] = [];
 
   if (loan) {
@@ -196,22 +199,35 @@ export function parseBoiDetail(
   input: ParsedActorInput,
 ): RawFundingRecord | null {
   const title = emptyToUndefined($('h1.entry-title').first().text());
-  const body = normalizeWhitespace($('main .page-content, main#content').first().text());
+  const body = emptyToUndefined($('.page-content').first().text());
   if (!title || !body) {
+    log.info('Skipped BOI product without a title or product body', { pageUrl, title });
     return null;
   }
 
   const combined = `${title} ${body}`;
   if (!matchesQuery(combined, input.query)) {
+    log.info('Skipped BOI product that did not match the query', { pageUrl, title });
     return null;
   }
 
   const fundingType = inferFundingType(combined);
   if (input.fundingType && fundingType && fundingType !== input.fundingType) {
+    log.info('Skipped BOI product whose stated type does not match the input filter', {
+      pageUrl,
+      title,
+      fundingType,
+      required: input.fundingType,
+    });
     return null;
   }
 
   if (input.fundingType && !fundingType) {
+    log.info('Skipped BOI product that does not clearly state the requested funding type', {
+      pageUrl,
+      title,
+      required: input.fundingType,
+    });
     return null;
   }
 

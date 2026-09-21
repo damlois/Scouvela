@@ -9,7 +9,7 @@ export const fundingOpportunitySchema = z.object({
   kind: z.literal('funding').default('funding'),
   title: z.string().min(1).max(300),
   provider: z.string().min(1).max(200),
-  fundingType: fundingTypeSchema,
+  fundingType: fundingTypeSchema.optional(),
   amount: z.string().min(1).max(200).optional(),
   eligibility: z.array(z.string().min(1).max(300)).max(20).optional(),
   deadline: z.string().min(1).max(50).optional(),

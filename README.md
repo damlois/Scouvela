@@ -83,8 +83,8 @@ Rules:
 
 - `APIFY_TOKEN` is server-only. Never prefix it with `NEXT_PUBLIC_`.
 - `USE_MOCK_DATA=true` returns sample funding and vendor records without calling Apify.
-- `USE_MOCK_DATA=false` requires both `APIFY_TOKEN` and `APIFY_ACTOR_ID`.
-- `ACTOR_RUN_TIMEOUT_SECONDS` defaults to 60 and is capped at 300.
+- `USE_MOCK_DATA=false` requires both `APIFY_TOKEN` and `APIFY_ACTOR_ID`, and search pages call `POST /api/search` which starts the Actor.
+- `ACTOR_RUN_TIMEOUT_SECONDS` defaults to 180 and is capped at 300.
 
 ## Local development commands
 
@@ -120,13 +120,18 @@ apps/web/src/app/apple-icon.png
 
 The navbar and footer use the complete wordmark image. The S mark is used for the favicon.
 
-## How mock mode works
+## How search talks to Apify
 
-The funding and vendor pages filter `apps/web/src/lib/mock-data.ts` in the browser. There is a short loading delay so skeleton states can be demonstrated. No network request is made for search.
+The funding and vendor pages submit to `POST /api/search`. That route is server-only.
 
-`POST /api/search` can still return the same mock records when `USE_MOCK_DATA=true`. That path is for later Apify integration and is not used by the current UI.
+- `USE_MOCK_DATA=true` returns records from `apps/web/src/lib/mock-data.ts`.
+- `USE_MOCK_DATA=false` starts Actor `APIFY_ACTOR_ID` with `APIFY_TOKEN`, waits for the run, then returns validated Dataset items.
 
-Demo records are fictional, labelled with `sourceName: "Scouvela demo dataset"`, and use `https://example.com/...` placeholder URLs. They are not scraped results.
+The homepage still shows a few sample cards from the demo dataset. Search results are live when mock mode is off.
+
+Confirm listings at the original `sourceUrl` before acting on them.
+
+Demo records used in mock mode are fictional, labelled with `sourceName: "Scouvela demo dataset"`, and use `https://example.com/...` placeholder URLs.
 
 ## How to run the Actor locally
 
@@ -190,10 +195,10 @@ If Vercel asks for a project directory, `apps/web` is the Next.js app. It still 
 ```bash
 cd apps/actor
 apify login
-apify push
+pnpm apify:push
 ```
 
-The Actor Dockerfile uses the repository root as `dockerContextDir`, so it can install `packages/shared` and `apps/actor` together.
+`pnpm apify:push` copies `packages/shared` into the Actor folder, then uploads. Apify does not allow a Docker context outside `apps/actor`.
 
 3. Copy the deployed Actor ID into `APIFY_ACTOR_ID`.
 4. Store `APIFY_TOKEN` only in server or Apify secret settings.

@@ -17,9 +17,7 @@ export function transformFundingRecord(
   const provider = toOptional(record.provider);
   const sourceUrl = record.sourceUrl ? toAbsoluteUrl(record.sourceUrl, record.sourceUrl) : undefined;
   const sourceName = toOptional(record.sourceName);
-  const fundingType = record.fundingType;
-
-  if (!title || !provider || !sourceUrl || !sourceName || !fundingType) {
+  if (!title || !provider || !sourceUrl || !sourceName) {
     return null;
   }
 
@@ -31,7 +29,7 @@ export function transformFundingRecord(
     kind: 'funding',
     title,
     provider,
-    fundingType,
+    fundingType: record.fundingType,
     amount: toOptional(record.amount),
     eligibility,
     deadline,

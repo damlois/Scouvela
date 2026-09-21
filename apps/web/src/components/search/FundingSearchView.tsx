@@ -15,12 +15,12 @@ import {
   defaultFundingFilters,
   describeFundingResults,
   getFundingActiveFilters,
-  searchFunding,
+  sortFunding,
   toFundingSearchRequest,
   type FundingFilters,
   type FundingSort,
 } from '@/lib/search';
-import { getSearchDelayMs, wait } from '@/lib/utils';
+import { requestSearch, SearchApiError } from '@/lib/search-api';
 
 type FormValues = {
   query: string;
@@ -37,7 +37,7 @@ const emptyForm: FormValues = {
   businessCategory: '',
   state: '',
   fundingType: '',
-  maxResults: 20,
+  maxResults: 5,
 };
 
 const sortOptions = [
@@ -87,6 +87,9 @@ export function FundingSearchView({
   const [sort, setSort] = useState<FundingSort>(initialSort);
   const [status, setStatus] = useState<ViewStatus>(previewError ? 'error' : 'idle');
   const [results, setResults] = useState<FundingOpportunity[]>([]);
+  const [errorMessage, setErrorMessage] = useState(
+    'We could not finish that search. Please try again.',
+  );
   const [errors, setErrors] = useState<Partial<Record<'query' | 'maxResults', string>>>({});
 
   const activeFilters = useMemo(() => getFundingActiveFilters(filters), [filters]);
@@ -110,7 +113,7 @@ export function FundingSearchView({
         if (issue.path[0] === 'query')
           fieldErrors.query = 'Enter a shorter keyword, up to 200 characters.';
         if (issue.path[0] === 'maxResults')
-          fieldErrors.maxResults = 'Choose between 1 and 50 results.';
+          fieldErrors.maxResults = 'Choose between 1 and 20 results.';
       }
       setErrors(fieldErrors);
       return;
@@ -122,10 +125,24 @@ export function FundingSearchView({
     setStatus('loading');
     persist(nextFilters, nextSort);
 
-    await wait(getSearchDelayMs());
-    const found = searchFunding(parsed.data, nextSort);
-    setResults(found);
-    setStatus(found.length === 0 ? 'empty' : 'success');
+    try {
+      const response = await requestSearch(parsed.data);
+      if (response.mode !== 'funding') {
+        throw new SearchApiError('Search returned an unexpected result set.', 502);
+      }
+
+      const found = sortFunding(response.results, nextSort, nextFilters.query);
+      setResults(found);
+      setStatus(found.length === 0 ? 'empty' : 'success');
+    } catch (error) {
+      setResults([]);
+      setErrorMessage(
+        error instanceof SearchApiError
+          ? error.message
+          : 'We could not finish that search. Please try again.',
+      );
+      setStatus('error');
+    }
   }
 
   function onSubmit(event: FormEvent<HTMLFormElement>) {
@@ -187,31 +204,31 @@ export function FundingSearchView({
       {status === 'idle' ? (
         <InitialState
           title="Search public funding listings"
-          body="Start with a keyword, a state or a funding type. These demonstration records are fictional sample listings, not live calls."
+          body="Start with a keyword such as SME. Live results come from Bank of Industry public product pages. Confirm every detail at the original source before you apply."
           examples={[
             {
-              label: 'Loans in Lagos',
-              description: 'Working capital and asset finance samples.',
+              label: 'SME products',
+              description: 'Public Bank of Industry SME listings.',
               onSelect: () => {
-                const next = { ...emptyForm, state: 'Lagos', fundingType: 'loan' };
+                const next = { ...emptyForm, query: 'SME' };
                 setValues(next);
                 void runSearch(filtersFromFundingForm(next));
               },
             },
             {
-              label: 'Open grants',
-              description: 'Grant listings, including closing-soon and expired examples.',
+              label: 'Loans',
+              description: 'Only pages that clearly state a loan.',
               onSelect: () => {
-                const next = { ...emptyForm, fundingType: 'grant' };
+                const next = { ...emptyForm, query: 'SME', fundingType: 'loan' };
                 setValues(next);
                 void runSearch(filtersFromFundingForm(next));
               },
             },
             {
-              label: 'Accelerators',
-              description: 'Founder programmes with mentoring and seed support.',
+              label: 'Support programmes',
+              description: 'Matching funds and similar stated schemes.',
               onSelect: () => {
-                const next = { ...emptyForm, fundingType: 'accelerator' };
+                const next = { ...emptyForm, fundingType: 'support-programme' };
                 setValues(next);
                 void runSearch(filtersFromFundingForm(next));
               },
@@ -220,11 +237,17 @@ export function FundingSearchView({
         />
       ) : null}
 
-      {status === 'loading' ? <LoadingState label="Searching the demo funding dataset" /> : null}
+      {status === 'loading' ? (
+        <LoadingState label="Searching public funding listings. This can take up to a minute." />
+      ) : null}
 
       {status === 'error' ? (
         <ErrorState
-          message="This is the development error preview. Retry to search the local demo data, or reset to start again."
+          message={
+            previewError
+              ? 'This is the development error preview. Retry to run a live search, or reset to start again.'
+              : errorMessage
+          }
           onRetry={() => void runSearch(filtersFromFundingForm(values), sort)}
           onReset={resetAll}
         />
@@ -241,8 +264,9 @@ export function FundingSearchView({
             sortOptions={sortOptions}
             onSortChange={(value) => {
               const nextSort = value as FundingSort;
-              setValues(valuesFromFilters(filters));
-              void runSearch(filters, nextSort);
+              setSort(nextSort);
+              persist(filters, nextSort);
+              setResults((current) => sortFunding(current, nextSort, filters.query));
             }}
             onClearFilters={resetAll}
             canClear={activeFilters.length > 0}

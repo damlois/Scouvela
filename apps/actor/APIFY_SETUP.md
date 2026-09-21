@@ -39,17 +39,23 @@ Alternatively, the first `apify push` from `apps/actor` will create or update th
 
 ## 4. Deploy the local project
 
-From the repository root:
+From `apps/actor`. Apify only allows a Docker context inside the Actor folder, so the shared package is copied in first:
 
 ```bash
 pnpm --filter @scouvela/shared build
 cd apps/actor
+pnpm bundle-shared
 apify push
 ```
 
-Equivalent namespaced command: `apify actors push`.
+Or in one step:
 
-The Dockerfile uses the monorepo root as `dockerContextDir`, so Apify can install `packages/shared` and `apps/actor` together.
+```bash
+cd apps/actor
+pnpm apify:push
+```
+
+`dockerContextDir` is relative to `.actor/actor.json`, so it must be `..` (the Actor folder). `../..` is the monorepo root and Apify rejects that on `apify push`.
 
 ## 5. Build and run
 

@@ -5,7 +5,7 @@ import type { VendorFilters, VendorSort } from '@/lib/search';
 export const metadata: Metadata = {
   title: 'Find vendors',
   description:
-    'Search sample Lagos service providers such as tailors, bakers, printers and packaging vendors. Open to everyone, not only business owners.',
+    'Search Lagos service providers such as tailors, bakers, printers and packaging vendors. Open to everyone, not only business owners.',
 };
 
 type SearchParams = {
@@ -34,7 +34,7 @@ export default async function VendorsPage({
     serviceCategory: params.category,
     state: params.ngState,
     locality: params.locality,
-    maxResults: Number(params.max) || 20,
+    maxResults: Number(params.max) || 5,
   };
 
   return (
@@ -44,8 +44,8 @@ export default async function VendorsPage({
         <h1 className="text-3xl font-semibold tracking-tight text-text">Find local vendors</h1>
         <p className="text-sm leading-6 text-muted">
           Search tailors, bakers, shoemakers, printers, packaging vendors and related services.
-          Anyone can search — for home, an event, or a business. The current demo data focuses on
-          Lagos. Listings are source-listed or unverified, not independently verified.
+          Anyone can search — for home, an event, or a business. Live listings currently focus on
+          Lagos. Listings are source-listed, not independently verified.
         </p>
       </header>
       <VendorSearchView

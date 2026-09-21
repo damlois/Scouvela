@@ -6,10 +6,9 @@
   "version": "0.1",
   "buildTag": "latest",
   "dockerfile": "./Dockerfile",
-  "dockerContextDir": "../..",
+  "dockerContextDir": "..",
   "input": "./input_schema.json",
   "storages": {
     "dataset": "./dataset_schema.json"
-  },
-  "environmentVariables": {}
+  }
 }

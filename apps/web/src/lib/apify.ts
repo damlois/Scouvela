@@ -1,5 +1,6 @@
 import { ApifyClient } from 'apify-client';
 import {
+  ACTOR_HARD_MAX_RESULTS,
   fundingOpportunitySchema,
   vendorSchema,
   type ActorInput,
@@ -22,7 +23,13 @@ class ActorRunError extends Error {
 
 export { ActorRunError };
 
+function cappedMaxResults(value: number): number {
+  return Math.min(value, ACTOR_HARD_MAX_RESULTS);
+}
+
 function toActorInput(request: ParsedSearchRequest): ActorInput {
+  const maxResults = cappedMaxResults(request.maxResults);
+
   if (request.mode === 'funding') {
     return {
       mode: 'funding',
@@ -31,7 +38,7 @@ function toActorInput(request: ParsedSearchRequest): ActorInput {
       state: request.state,
       locality: request.locality,
       fundingType: request.fundingType,
-      maxResults: request.maxResults,
+      maxResults,
     };
   }
 
@@ -41,7 +48,7 @@ function toActorInput(request: ParsedSearchRequest): ActorInput {
     serviceCategory: request.serviceCategory,
     state: request.state,
     locality: request.locality,
-    maxResults: request.maxResults,
+    maxResults,
   };
 }
 

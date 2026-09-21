@@ -8,7 +8,7 @@
     "node": ">=20"
   },
   "scripts": {
-    "predev": "pnpm --filter @scouvela/shared build",
+    "predev": "node scripts/ensure-local-next-cache.mjs && pnpm --filter @scouvela/shared build",
     "dev": "pnpm --filter @scouvela/web dev",
     "dev:web": "pnpm --filter @scouvela/web dev",
     "dev:actor": "pnpm --filter @scouvela/actor start",

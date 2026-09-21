@@ -113,7 +113,7 @@ Follow [APIFY_SETUP.md](./APIFY_SETUP.md). Short version:
 ```bash
 cd apps/actor
 apify login
-apify push
+pnpm apify:push
 apify call --input-file examples/funding.json
 ```
 
@@ -126,8 +126,8 @@ Open the run → **Dataset**. Export JSON or CSV from Console. Locally, Crawlee 
 - Live sources require explicit operator approval.
 - Vendor discovery is Lagos-only in this version.
 - BOI products often omit deadlines, so status is frequently `unverified` unless the page says applications are open or states a date.
-- Funding type is omitted (record skipped) when the page does not clearly say loan, grant, accelerator or support programme.
-- Pagination is capped at two index pages.
+- Funding type is recorded only when the page clearly states loan, grant, accelerator or support programme. Listings without that language are still saved; the type is left blank rather than guessed.
+- Pagination is capped at two index pages. Detail pages are visited from the full index, not only the first `maxResults` cards.
 
 ## If source HTML changes
 
@@ -143,10 +143,11 @@ Open the run → **Dataset**. Export JSON or CSV from Console. Locally, Crawlee 
 {
   "mode": "funding",
   "query": "SME",
-  "fundingType": "loan",
   "maxResults": 5
 }
 ```
+
+`examples/funding-loans.json` adds `"fundingType": "loan"`. Many BOI products are titled “Fund” or “Programme” and never use the word loan, so that filter skips them.
 
 ```json
 {

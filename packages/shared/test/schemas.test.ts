@@ -45,6 +45,24 @@ describe('fundingOpportunitySchema', () => {
 
     expect(result.success).toBe(false);
   });
+
+  it('accepts a public listing when the page does not state a funding type', () => {
+    const result = fundingOpportunitySchema.safeParse({
+      id: 'funding-untyped',
+      kind: 'funding',
+      title: 'State Matching Fund',
+      provider: 'Bank of Industry',
+      status: 'unverified',
+      sourceUrl: 'https://www.boi.ng/product/state-matching-fund/',
+      sourceName: 'Bank of Industry',
+      discoveredAt,
+    });
+
+    expect(result.success).toBe(true);
+    if (result.success) {
+      expect(result.data.fundingType).toBeUndefined();
+    }
+  });
 });
 
 describe('vendorSchema', () => {

@@ -8,7 +8,7 @@ const envSchema = z
     USE_MOCK_DATA: z.enum(['true', 'false']).default('true'),
     APIFY_TOKEN: z.preprocess(emptyToUndefined, z.string().min(1).optional()),
     APIFY_ACTOR_ID: z.preprocess(emptyToUndefined, z.string().min(1).optional()),
-    ACTOR_RUN_TIMEOUT_SECONDS: z.coerce.number().int().positive().max(300).default(60),
+    ACTOR_RUN_TIMEOUT_SECONDS: z.coerce.number().int().positive().max(300).default(180),
   })
   .superRefine((value, ctx) => {
     if (value.USE_MOCK_DATA === 'false') {

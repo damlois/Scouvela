@@ -28,8 +28,11 @@ export const metadata: Metadata = {
 
 export default function RootLayout({ children }: Readonly<{ children: ReactNode }>) {
   return (
-    <html lang="en">
-      <body className={`${manrope.variable} flex min-h-screen flex-col font-sans antialiased`}>
+    <html lang="en" suppressHydrationWarning>
+      <body
+        className={`${manrope.variable} flex min-h-screen flex-col font-sans antialiased`}
+        suppressHydrationWarning
+      >
         <AppShell>{children}</AppShell>
       </body>
     </html>

@@ -1,5 +1,6 @@
 {
   "mode": "funding",
   "query": "SME",
+  "fundingType": "loan",
   "maxResults": 5
 }

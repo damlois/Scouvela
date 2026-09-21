@@ -8,7 +8,7 @@ import {
 } from '@scouvela/shared';
 import type { RawFundingRecord } from './sources/funding/boi-funding-source.js';
 import type { RawVendorRecord } from './sources/vendors/finelib-vendor-source.js';
-import { transformFundingRecords } from './transformers/funding-transformer.js';
+import { transformFundingRecord } from './transformers/funding-transformer.js';
 import { transformVendorRecords } from './transformers/vendor-transformer.js';
 import { deduplicateByKey, fundingDedupeKey, vendorDedupeKey } from './utils/deduplicate.js';
 import type { RunStats } from './utils/stats.js';
@@ -26,7 +26,18 @@ export function finaliseFundingRecords(
   discoveredAt: string,
   stats: RunStats,
 ): FundingOpportunity[] {
-  const transformed = transformFundingRecords(rawRecords, input, discoveredAt);
+  const transformed: FundingOpportunity[] = [];
+  for (const record of rawRecords) {
+    const item = transformFundingRecord(record, discoveredAt);
+    if (!item) {
+      stats.invalidRecordsSkipped += 1;
+      logInvalid('funding', record.sourceUrl, record.title);
+      continue;
+    }
+
+    transformed.push(item);
+  }
+
   const { unique, duplicatesRemoved } = deduplicateByKey(transformed, fundingDedupeKey);
   stats.duplicatesRemoved += duplicatesRemoved;
 

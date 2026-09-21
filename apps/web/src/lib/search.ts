@@ -7,7 +7,7 @@ import type {
   Vendor,
   VendorSearchRequest,
 } from '@scouvela/shared';
-import { DEFAULT_MAX_RESULTS } from '@scouvela/shared';
+import { ACTOR_DEFAULT_MAX_RESULTS } from '@scouvela/shared';
 import { FUNDING_TYPE_LABELS, SERVICE_CATEGORY_LABELS } from './constants';
 import { MOCK_FUNDING, MOCK_VENDORS, type MockFundingOpportunity, type MockVendor } from './mock-data';
 import { matchesText } from './utils';
@@ -76,10 +76,10 @@ export function filterFunding(
 }
 
 export function sortFunding(
-  records: MockFundingOpportunity[],
+  records: FundingOpportunity[],
   sort: FundingSort,
   query?: string,
-): MockFundingOpportunity[] {
+): FundingOpportunity[] {
   const copy = [...records];
   const now = Date.now();
 
@@ -135,7 +135,7 @@ export function filterVendors(records: MockVendor[], filters: VendorFilters): Mo
   });
 }
 
-export function sortVendors(records: MockVendor[], sort: VendorSort, query?: string): MockVendor[] {
+export function sortVendors(records: Vendor[], sort: VendorSort, query?: string): Vendor[] {
   const copy = [...records];
 
   copy.sort((left, right) => {
@@ -159,17 +159,19 @@ export function searchFunding(
   filters: FundingFilters,
   sort: FundingSort = 'relevant',
 ): FundingOpportunity[] {
-  const filtered = filterFunding(MOCK_FUNDING, filters);
-  return sortFunding(filtered, sort, filters.query)
-    .slice(0, filters.maxResults)
-    .map((item) => ({ ...item, kind: 'funding' as const }));
+  const filtered = filterFunding(MOCK_FUNDING, filters).map((item) => ({
+    ...item,
+    kind: 'funding' as const,
+  }));
+  return sortFunding(filtered, sort, filters.query).slice(0, filters.maxResults);
 }
 
 export function searchVendors(filters: VendorFilters, sort: VendorSort = 'relevant'): Vendor[] {
-  const filtered = filterVendors(MOCK_VENDORS, filters);
-  return sortVendors(filtered, sort, filters.query)
-    .slice(0, filters.maxResults)
-    .map((item) => ({ ...item, kind: 'vendor' as const }));
+  const filtered = filterVendors(MOCK_VENDORS, filters).map((item) => ({
+    ...item,
+    kind: 'vendor' as const,
+  }));
+  return sortVendors(filtered, sort, filters.query).slice(0, filters.maxResults);
 }
 
 export function getMockSearchResponse(request: ParsedSearchRequest): SearchResponse {
@@ -213,11 +215,11 @@ export function getMockSearchResponse(request: ParsedSearchRequest): SearchRespo
 }
 
 export function defaultFundingFilters(): FundingFilters {
-  return { maxResults: DEFAULT_MAX_RESULTS };
+  return { maxResults: ACTOR_DEFAULT_MAX_RESULTS };
 }
 
 export function defaultVendorFilters(): VendorFilters {
-  return { maxResults: DEFAULT_MAX_RESULTS };
+  return { maxResults: ACTOR_DEFAULT_MAX_RESULTS };
 }
 
 export function toFundingSearchRequest(filters: FundingFilters): FundingSearchRequest {

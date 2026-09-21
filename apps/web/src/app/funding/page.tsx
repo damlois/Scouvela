@@ -7,7 +7,7 @@ import type { FundingFilters, FundingSort } from '@/lib/search';
 export const metadata: Metadata = {
   title: 'Find funding',
   description:
-    'Search sample SME loans, grants, accelerators and support programmes for Nigerian entrepreneurs.',
+    'Search publicly listed SME loans, grants, accelerators and support programmes for Nigerian entrepreneurs.',
 };
 
 type SearchParams = {
@@ -36,7 +36,7 @@ export default async function FundingPage({
     businessCategory: params.category,
     state: params.ngState,
     fundingType: params.type as FundingType | undefined,
-    maxResults: Number(params.max) || 20,
+    maxResults: Number(params.max) || 5,
   };
 
   return (
@@ -45,8 +45,8 @@ export default async function FundingPage({
         <p className="text-sm font-semibold text-primary">Funding Scout</p>
         <h1 className="text-3xl font-semibold tracking-tight text-text">Find SME funding</h1>
         <p className="text-sm leading-6 text-muted">
-          Search loans, grants, accelerators and support programmes. This page uses local demo
-          records only. Confirm every detail at the original source before you apply.
+          Search loans, grants, accelerators and support programmes from public listings. Confirm
+          every detail at the original source before you apply.
         </p>
         <AudienceFundingNote />
       </header>

@@ -1,7 +1,7 @@
 import { cn } from '@/lib/utils';
 
 export function LoadingState({
-  label = 'Loading results from the demo dataset',
+  label = 'Loading search results',
   count = 4,
 }: {
   label?: string;

@@ -3,6 +3,7 @@ import type { ParsedActorInput } from '@scouvela/shared';
 import {
   CRAWL_HANDLER_TIMEOUT_SECS,
   CRAWL_MAX_CONCURRENCY,
+  CRAWL_MAX_INDEX_PAGES,
   CRAWL_MAX_REQUESTS_PER_MINUTE,
   CRAWL_MAX_RETRIES,
   CRAWL_REQUEST_TIMEOUT_SECS,
@@ -50,7 +51,7 @@ export async function crawlSource<TRaw>(options: {
     navigationTimeoutSecs: CRAWL_REQUEST_TIMEOUT_SECS,
     maxRequestsPerMinute: CRAWL_MAX_REQUESTS_PER_MINUTE,
     retryOnBlocked: false,
-    maxRequestsPerCrawl: Math.max(4, input.maxResults * 3),
+    maxRequestsPerCrawl: CRAWL_MAX_INDEX_PAGES + Math.max(12, input.maxResults * 4),
     async requestHandler({ request, $, crawler: currentCrawler }) {
       stats.pagesVisited += 1;
       const url = request.loadedUrl ?? request.url;
@@ -70,8 +71,10 @@ export async function crawlSource<TRaw>(options: {
           records.push(record);
         }
 
-        const remaining = input.maxResults - records.length;
-        for (const detailUrl of parsed.detailUrls.slice(0, Math.max(remaining, 0))) {
+        // Visit every listing URL from the index. Filters such as fundingType often
+        // reject a card only after the detail page is read, so capping the queue at
+        // maxResults here would skip later matching products.
+        for (const detailUrl of parsed.detailUrls) {
           if (seen.has(detailUrl) || records.length >= input.maxResults) {
             continue;
           }
@@ -80,7 +83,7 @@ export async function crawlSource<TRaw>(options: {
           await currentCrawler.addRequests([{ url: detailUrl, userData: { label: 'detail' } }]);
         }
 
-        if (indexPages < 2) {
+        if (indexPages < CRAWL_MAX_INDEX_PAGES) {
           for (const nextUrl of parsed.nextIndexUrls.slice(0, 1)) {
             if (!seen.has(nextUrl) && records.length < input.maxResults) {
               seen.add(nextUrl);
@@ -93,11 +96,18 @@ export async function crawlSource<TRaw>(options: {
       }
 
       if (label === 'detail') {
+        if (records.length >= input.maxResults) {
+          return;
+        }
+
         const record = adapter.parseDetail($ as unknown as HtmlRoot, url, input);
         if (record) {
           records.push(record);
           stats.recordsExtracted += 1;
+          return;
         }
+
+        log.info('Detail page produced no record', { url });
       }
     },
     async errorHandler({ request, response }) {

@@ -66,7 +66,7 @@ export const SERVICE_CATEGORIES = [
 
 export const LAGOS_LOCALITIES = ['Yaba', 'Surulere', 'Ikeja', 'Lekki', 'Victoria Island'] as const;
 
-export const MAX_RESULT_OPTIONS = [5, 10, 20, 50] as const;
+export const MAX_RESULT_OPTIONS = [5, 10, 20] as const;
 
 export const FUNDING_TYPE_LABELS: Record<FundingType, string> = {
   loan: 'Loan',
