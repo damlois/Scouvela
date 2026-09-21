@@ -6,6 +6,7 @@ export const fundingStatusSchema = z.enum(FUNDING_STATUSES);
 
 export const fundingOpportunitySchema = z.object({
   id: z.string().min(1),
+  kind: z.literal('funding').default('funding'),
   title: z.string().min(1).max(300),
   provider: z.string().min(1).max(200),
   fundingType: fundingTypeSchema,

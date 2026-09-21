@@ -1,4 +1,10 @@
-export { CLOSING_SOON_DAYS, DEFAULT_MAX_RESULTS, HARD_MAX_RESULTS } from './constants.js';
+export {
+  ACTOR_DEFAULT_MAX_RESULTS,
+  ACTOR_HARD_MAX_RESULTS,
+  CLOSING_SOON_DAYS,
+  DEFAULT_MAX_RESULTS,
+  HARD_MAX_RESULTS,
+} from './constants.js';
 export {
   actorInputSchema,
   type ActorInput,

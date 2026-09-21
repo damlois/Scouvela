@@ -1,11 +1,11 @@
 # Scouvela
 
-Scouvela is an Apify-powered discovery platform for Nigerian entrepreneurs. It helps users:
+Scouvela is an Apify-powered discovery platform for people in Nigeria. It helps users:
 
-1. Find current SME funding opportunities, including loans, grants, accelerators and support programmes.
-2. Find local service providers such as tailors, bakers, shoemakers, printers and packaging vendors by location.
+1. Find current SME funding opportunities, including loans, grants, accelerators and support programmes — aimed at business owners.
+2. Find local service providers such as tailors, bakers, shoemakers, printers and packaging vendors by location — for personal use or for a business.
 
-This repository is a pnpm monorepo. The web app, Apify Actor and shared contracts live in one Git repository so Lois and Tomike can work in parallel without duplicating types.
+This repository is a pnpm monorepo. The web app, Apify Actor and shared contracts live in one Git repository so developers can work in parallel without duplicating types.
 
 ## Architecture overview
 
@@ -13,14 +13,11 @@ This repository is a pnpm monorepo. The web app, Apify Actor and shared contract
 - `apps/actor` is a TypeScript Apify Actor. It will collect publicly listed records, normalise them, deduplicate them and push valid items to an Apify Dataset.
 - `packages/shared` is the contract layer. Zod schemas and inferred TypeScript types are defined once and imported by both apps.
 
-The frontend never talks to Apify directly. The Next.js route keeps `APIFY_TOKEN` on the server, starts the Actor, waits for completion, validates Dataset items, and returns a typed response.
-
-Until approved public sources are wired into the Actor, set `USE_MOCK_DATA=true` so Tomike can build the UI against realistic sample records.
+The current demo UI searches local mock data in the browser. It does not call Apify and does not call `POST /api/search`. That API route remains in place for later Actor integration and still keeps `APIFY_TOKEN` on the server.
 
 ```text
-Browser UI  →  POST /api/search  →  mock data or Apify Actor  →  validated JSON
-                                      ↑
-                               APIFY_TOKEN stays server-side
+Browser UI  →  local mock data  →  typed result cards
+POST /api/search remains available for a later Apify-backed search.
 ```
 
 ## Repository structure
@@ -102,19 +99,34 @@ pnpm typecheck
 pnpm test
 ```
 
-Useful pages while the UI is still a placeholder:
+Useful pages:
 
 - `/` landing page
 - `/funding` funding search
 - `/vendors` vendor search
+- `/funding?state=error` and `/vendors?state=error` preview the error state in development
+
+## Brand assets
+
+The Scouvela lockup and favicon are the official logo (teal S with amber dot, plus the wordmark):
+
+```text
+apps/web/public/images/scouvela-wordmark.png
+apps/web/public/images/scouvela-mark.png
+apps/web/public/favicon.ico
+apps/web/src/app/icon.png
+apps/web/src/app/apple-icon.png
+```
+
+The navbar and footer use the complete wordmark image. The S mark is used for the favicon.
 
 ## How mock mode works
 
-When `USE_MOCK_DATA=true`, `POST /api/search` validates the request with the shared Zod schema and returns records from `apps/web/src/lib/mock-data.ts`. It does not start an Actor run and does not use `APIFY_TOKEN`.
+The funding and vendor pages filter `apps/web/src/lib/mock-data.ts` in the browser. There is a short loading delay so skeleton states can be demonstrated. No network request is made for search.
 
-Mock records are labelled with `sourceName: "Scouvela mock dataset"` and always include a `sourceUrl`. They exist so the frontend can be developed independently. They are not scraped results.
+`POST /api/search` can still return the same mock records when `USE_MOCK_DATA=true`. That path is for later Apify integration and is not used by the current UI.
 
-Turn mock mode off only after the Actor is deployed and `APIFY_ACTOR_ID` points at that deployment.
+Demo records are fictional, labelled with `sourceName: "Scouvela demo dataset"`, and use `https://example.com/...` placeholder URLs. They are not scraped results.
 
 ## How to run the Actor locally
 
@@ -137,18 +149,12 @@ apify run
 ```json
 {
   "mode": "funding",
-  "query": "MSME loan",
-  "state": "Lagos",
-  "maxResults": 10
+  "query": "SME",
+  "maxResults": 5
 }
 ```
 
-The crawlers are scaffolding. They will not visit arbitrary websites. Approved public sources and source-specific selectors still need to be added in:
-
-- `apps/actor/src/crawlers/funding-crawler.ts`
-- `apps/actor/src/crawlers/vendor-crawler.ts`
-
-Cheerio is the default crawler. Playwright exists only as an optional fallback in `apps/actor/src/crawlers/playwright-fallback.ts`.
+The Actor crawls approved public sources only after you review `apps/actor/SOURCES.md` and set the source-approval environment variables. Cheerio is the default crawler. Playwright remains an unused fallback.
 
 You can also start the compiled TypeScript entrypoint after building shared:
 
@@ -196,8 +202,8 @@ Do not scrape a source until it is publicly available and approved. Keep crawler
 
 ## Team responsibilities
 
-- **Lois**: Apify Actor, scraping, data processing, API integration and deployment.
-- **Tomike**: frontend UI, responsiveness and user experience.
+- **Developer**: Apify Actor, scraping, data processing, API integration and deployment.
+- **Developer**: frontend UI, responsiveness and user experience.
 
 Shared work:
 
@@ -208,12 +214,12 @@ Shared work:
 
 Do not create remote branches until the team is ready. Use this branch layout:
 
-| Branch | Purpose |
-| --- | --- |
-| `main` | Stable, demo-ready code |
-| `develop` | Shared integration branch |
-| `frontend-ui` | Tomike’s frontend branch |
-| `apify-actor` | Lois’s Actor and data branch |
+| Branch        | Purpose                      |
+| ------------- | ---------------------------- |
+| `main`        | Stable, demo-ready code      |
+| `develop`     | Shared integration branch    |
+| `frontend-ui` | Developer’s frontend branch  |
+| `apify-actor` | Developer’s Actor and data branch |
 
 Commands the team should run when you are ready to create local branches:
 
@@ -227,8 +233,8 @@ git checkout -b apify-actor
 Suggested daily flow:
 
 1. Start work from the latest `develop`.
-2. Tomike commits UI work on `frontend-ui`.
-3. Lois commits Actor and API work on `apify-actor`.
+2. A developer commits UI work on `frontend-ui`.
+3. A developer commits Actor and API work on `apify-actor`.
 4. Open pull requests into `develop`.
 5. Promote `develop` to `main` only when the demo path is stable.
 
@@ -236,11 +242,11 @@ Pull requests should use `.github/pull_request_template.md`.
 
 ## Current MVP limitations
 
-- The UI is a routing and contract placeholder, not the final visual design.
-- Actor crawlers have no approved sources or selectors yet, so live runs currently return zero Dataset items.
+- The UI is a hackathon-ready frontend backed by fictional demo data, not live scraped records.
+- Actor live crawls stay off until you review `apps/actor/SOURCES.md` and set the source-approval variables. Fixture tests cover parsing without hitting live sites.
 - Playwright is optional and unused until a JavaScript-rendered source is approved.
 - There is no authentication, payments, database or user accounts.
 - Vendor records are `source-listed` or `unverified` only. Scouvela does not claim that a vendor is verified.
 - Mock data is for frontend development. It is not a substitute for collected public records.
-- Result counts are capped at 50.
+- Result counts on the web search API are capped at 50. The Actor defaults to 5 results and caps at 20.
 - The platform only processes publicly available business information and always preserves the original `sourceUrl`.

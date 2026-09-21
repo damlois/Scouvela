@@ -1,5 +1,7 @@
 export const DEFAULT_MAX_RESULTS = 20;
 export const HARD_MAX_RESULTS = 50;
+export const ACTOR_DEFAULT_MAX_RESULTS = 5;
+export const ACTOR_HARD_MAX_RESULTS = 20;
 export const CLOSING_SOON_DAYS = 14;
 
 export const FUNDING_TYPES = ['loan', 'grant', 'accelerator', 'support-programme'] as const;

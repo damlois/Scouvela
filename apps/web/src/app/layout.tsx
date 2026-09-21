@@ -1,22 +1,36 @@
 import type { ReactNode } from 'react';
 import type { Metadata } from 'next';
-import { SiteFooter } from '@/components/layout/SiteFooter';
-import { SiteHeader } from '@/components/layout/SiteHeader';
+import { Manrope } from 'next/font/google';
+import { AppShell } from '@/components/layout/AppShell';
 import './globals.css';
 
+const manrope = Manrope({
+  subsets: ['latin'],
+  display: 'swap',
+  variable: '--font-manrope',
+});
+
 export const metadata: Metadata = {
-  title: 'Scouvela',
+  title: {
+    default: 'Scouvela',
+    template: '%s · Scouvela',
+  },
   description:
-    'Discover SME funding opportunities and local service providers for Nigerian entrepreneurs.',
+    'Find SME funding if you run a business, or find local vendors in Nigeria whether you do or not.',
+  icons: {
+    icon: [
+      { url: '/favicon.ico', sizes: '32x32' },
+      { url: '/images/scouvela-mark.png', type: 'image/png' },
+    ],
+    apple: [{ url: '/apple-icon.png' }],
+  },
 };
 
 export default function RootLayout({ children }: Readonly<{ children: ReactNode }>) {
   return (
     <html lang="en">
-      <body className="flex min-h-screen flex-col antialiased">
-        <SiteHeader />
-        <main className="mx-auto w-full max-w-5xl flex-1 px-4 py-8">{children}</main>
-        <SiteFooter />
+      <body className={`${manrope.variable} flex min-h-screen flex-col font-sans antialiased`}>
+        <AppShell>{children}</AppShell>
       </body>
     </html>
   );

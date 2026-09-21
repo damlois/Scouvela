@@ -5,6 +5,7 @@ export const vendorVerificationStatusSchema = z.enum(VENDOR_VERIFICATION_STATUSE
 
 export const vendorSchema = z.object({
   id: z.string().min(1),
+  kind: z.literal('vendor').default('vendor'),
   name: z.string().min(1).max(200),
   category: z.string().min(1).max(100),
   state: z.string().min(1).max(100),

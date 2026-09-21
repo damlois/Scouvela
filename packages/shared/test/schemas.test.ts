@@ -14,6 +14,7 @@ describe('fundingOpportunitySchema', () => {
   it('accepts a complete public funding record', () => {
     const result = fundingOpportunitySchema.safeParse({
       id: 'funding-boi-msme',
+      kind: 'funding',
       title: 'BOI MSME Loan',
       provider: 'Bank of Industry',
       fundingType: 'loan',
@@ -50,6 +51,7 @@ describe('vendorSchema', () => {
   it('accepts a source-listed vendor and never requires a verified label', () => {
     const result = vendorSchema.safeParse({
       id: 'vendor-lagos-tailor',
+      kind: 'vendor',
       name: 'Ikeja Stitch Studio',
       category: 'tailor',
       state: 'Lagos',
@@ -82,11 +84,16 @@ describe('vendorSchema', () => {
 describe('actorInputSchema', () => {
   it('defaults maxResults when omitted', () => {
     const result = actorInputSchema.parse({ mode: 'funding' });
-    expect(result.maxResults).toBe(20);
+    expect(result.maxResults).toBe(5);
   });
 
-  it('rejects maxResults above the hard limit', () => {
-    const result = actorInputSchema.safeParse({ mode: 'vendors', maxResults: 500 });
+  it('rejects maxResults above the Actor hard limit', () => {
+    const result = actorInputSchema.safeParse({ mode: 'vendors', query: 'tailor', maxResults: 500 });
+    expect(result.success).toBe(false);
+  });
+
+  it('requires a vendor category or query', () => {
+    const result = actorInputSchema.safeParse({ mode: 'vendors' });
     expect(result.success).toBe(false);
   });
 });

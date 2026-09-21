@@ -3,13 +3,80 @@
 @tailwind utilities;
 
 :root {
-  --color-teal: #0b6b57;
-  --color-amber: #f5a623;
-  --color-charcoal: #17211e;
-  --color-mint: #f5faf8;
+  --primary: #0b6b57;
+  --primary-dark: #075346;
+  --accent: #f5a623;
+  --text: #17211e;
+  --muted-text: #60706a;
+  --background: #f5faf8;
+  --surface: #ffffff;
+  --border: #dde9e5;
+  --error: #b42318;
+  --success: #067647;
+}
+
+html {
+  scroll-behavior: smooth;
 }
 
 body {
-  color: var(--color-charcoal);
-  background: var(--color-mint);
+  color: var(--text);
+  background: var(--background);
+}
+
+:focus-visible {
+  outline: 2px solid var(--primary);
+  outline-offset: 2px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+@layer components {
+  .container-shell {
+    @apply mx-auto w-full max-w-6xl px-4 sm:px-6;
+  }
+
+  .section-space {
+    @apply py-12 sm:py-16;
+  }
+
+  .btn {
+    @apply inline-flex min-h-11 items-center justify-center gap-2 rounded-md px-4 py-2 text-sm font-semibold transition-colors disabled:cursor-not-allowed disabled:opacity-60;
+  }
+
+  .btn-primary {
+    @apply btn bg-primary text-white hover:bg-primary-dark;
+  }
+
+  .btn-secondary {
+    @apply btn border border-border bg-surface text-text hover:border-primary hover:text-primary;
+  }
+
+  .btn-ghost {
+    @apply btn text-primary hover:bg-background;
+  }
+
+  .input {
+    @apply min-h-11 w-full rounded-md border border-border bg-surface px-3 text-sm text-text placeholder:text-muted;
+  }
+
+  .label {
+    @apply mb-1.5 block text-sm font-medium text-text;
+  }
+
+  .card {
+    @apply rounded-lg border border-border bg-surface p-5;
+  }
 }

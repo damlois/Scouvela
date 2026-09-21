@@ -1,16 +1,59 @@
-import { SearchForm } from '@/components/search/SearchForm';
+import type { Metadata } from 'next';
+import { VendorSearchView } from '@/components/search/VendorSearchView';
+import type { VendorFilters, VendorSort } from '@/lib/search';
 
-export default function VendorsPage() {
+export const metadata: Metadata = {
+  title: 'Find vendors',
+  description:
+    'Search sample Lagos service providers such as tailors, bakers, printers and packaging vendors. Open to everyone, not only business owners.',
+};
+
+type SearchParams = {
+  state?: string;
+  q?: string;
+  category?: string;
+  ngState?: string;
+  locality?: string;
+  max?: string;
+  sort?: string;
+};
+
+function parseSort(value: string | undefined): VendorSort {
+  return value === 'recent' || value === 'rating' ? value : 'relevant';
+}
+
+export default async function VendorsPage({
+  searchParams,
+}: {
+  searchParams: Promise<SearchParams>;
+}) {
+  const params = await searchParams;
+  const previewError = params.state === 'error';
+  const initialFilters: VendorFilters = {
+    query: params.q,
+    serviceCategory: params.category,
+    state: params.ngState,
+    locality: params.locality,
+    maxResults: Number(params.max) || 20,
+  };
+
   return (
-    <section className="space-y-4">
-      <div>
-        <p className="text-sm font-medium text-amber">Placeholder vendor page</p>
-        <h1 className="mt-2 text-2xl font-semibold text-teal">Find local vendors</h1>
-        <p className="mt-2 text-sm text-charcoal/80">
-          Confirm that routing, Tailwind and shared vendor types work. Visual design comes later.
+    <div className="container-shell section-space space-y-6">
+      <header className="max-w-copy space-y-2">
+        <p className="text-sm font-semibold text-primary">Local Scout</p>
+        <h1 className="text-3xl font-semibold tracking-tight text-text">Find local vendors</h1>
+        <p className="text-sm leading-6 text-muted">
+          Search tailors, bakers, shoemakers, printers, packaging vendors and related services.
+          Anyone can search — for home, an event, or a business. The current demo data focuses on
+          Lagos. Listings are source-listed or unverified, not independently verified.
         </p>
-      </div>
-      <SearchForm mode="vendors" />
-    </section>
+      </header>
+      <VendorSearchView
+        previewError={previewError}
+        initialFilters={initialFilters}
+        initialSort={parseSort(params.sort)}
+        hasInitialSearch={Boolean(params.q || params.category || params.ngState || params.locality)}
+      />
+    </div>
   );
 }

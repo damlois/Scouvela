@@ -13,7 +13,7 @@
     "query": {
       "title": "Query",
       "type": "string",
-      "description": "Free-text search query, for example 'MSME loan' or 'tailor'.",
+      "description": "Free-text query such as SME or tailor. Never used as a CSS selector or raw crawl URL.",
       "editor": "textfield"
     },
     "businessCategory": {
@@ -25,19 +25,19 @@
     "serviceCategory": {
       "title": "Service category",
       "type": "string",
-      "description": "Optional vendor category such as tailor, baker, shoemaker, printer or packaging.",
+      "description": "Vendor category: tailoring, bakery, shoemaker, printing or packaging. Required for vendor mode unless query is set.",
       "editor": "textfield"
     },
     "state": {
       "title": "State",
       "type": "string",
-      "description": "Nigerian state to focus the search, for example Lagos or Kano.",
+      "description": "Nigerian state. The first vendor source allowlists Lagos listing pages only.",
       "editor": "textfield"
     },
     "locality": {
       "title": "Locality",
       "type": "string",
-      "description": "City, LGA or neighbourhood within the selected state.",
+      "description": "City, LGA or neighbourhood within the selected state, for example Ikeja or Yaba.",
       "editor": "textfield"
     },
     "fundingType": {
@@ -49,10 +49,10 @@
     "maxResults": {
       "title": "Maximum results",
       "type": "integer",
-      "description": "Maximum number of valid records to push to the dataset. Hard cap is 50.",
+      "description": "Maximum number of valid records to push to the dataset. Default 5. Hard cap is 20.",
       "minimum": 1,
-      "maximum": 50,
-      "default": 20
+      "maximum": 20,
+      "default": 5
     }
   },
   "required": ["mode"]

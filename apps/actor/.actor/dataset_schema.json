@@ -6,6 +6,11 @@
       "label": "ID",
       "nullable": false
     },
+    "kind": {
+      "type": "string",
+      "label": "Kind",
+      "nullable": false
+    },
     "title": {
       "type": "string",
       "label": "Title",
@@ -26,14 +31,14 @@
       "label": "Category",
       "nullable": true
     },
-    "fundingType": {
-      "type": "string",
-      "label": "Funding type",
-      "nullable": true
-    },
     "status": {
       "type": "string",
       "label": "Status",
+      "nullable": true
+    },
+    "verificationStatus": {
+      "type": "string",
+      "label": "Verification status",
       "nullable": true
     },
     "state": {
@@ -41,9 +46,14 @@
       "label": "State",
       "nullable": true
     },
-    "location": {
+    "locality": {
       "type": "string",
-      "label": "Location",
+      "label": "Locality",
+      "nullable": true
+    },
+    "deadline": {
+      "type": "string",
+      "label": "Deadline",
       "nullable": true
     },
     "sourceName": {
@@ -62,11 +72,6 @@
       "format": "date-time",
       "label": "Discovered at",
       "nullable": false
-    },
-    "verificationStatus": {
-      "type": "string",
-      "label": "Verification status",
-      "nullable": true
     }
   },
   "views": {
@@ -74,11 +79,16 @@
       "title": "Overview",
       "transformation": {
         "fields": [
-          "id",
+          "kind",
           "title",
           "name",
           "provider",
           "category",
+          "status",
+          "verificationStatus",
+          "state",
+          "locality",
+          "deadline",
           "sourceName",
           "sourceUrl",
           "discoveredAt"
@@ -87,11 +97,16 @@
       "display": {
         "component": "table",
         "properties": {
-          "id": { "label": "ID" },
+          "kind": { "label": "Kind" },
           "title": { "label": "Title" },
           "name": { "label": "Name" },
           "provider": { "label": "Provider" },
           "category": { "label": "Category" },
+          "status": { "label": "Status" },
+          "verificationStatus": { "label": "Verification" },
+          "state": { "label": "State" },
+          "locality": { "label": "Locality" },
+          "deadline": { "label": "Deadline" },
           "sourceName": { "label": "Source" },
           "sourceUrl": { "label": "Source URL" },
           "discoveredAt": { "label": "Discovered" }

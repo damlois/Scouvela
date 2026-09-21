@@ -8,7 +8,7 @@ import {
 } from '@scouvela/shared';
 import { ActorRunError, runScouvelaActor } from '@/lib/apify';
 import { getServerEnv } from '@/lib/env';
-import { getMockSearchResponse } from '@/lib/mock-data';
+import { getMockSearchResponse } from '@/lib/search';
 
 export const runtime = 'nodejs';
 

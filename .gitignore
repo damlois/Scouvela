@@ -36,7 +36,11 @@ Thumbs.db
 *.swp
 
 # Apify local storage
-storage
+/storage
+apps/actor/storage/datasets/
+apps/actor/storage/request_queues/
+apps/actor/storage/key_value_stores/default/*
+!apps/actor/storage/key_value_stores/default/INPUT.json
 apify_storage
 .apify
 
