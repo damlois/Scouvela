@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useState, type FormEvent } from 'react';
 import { usePathname, useRouter } from 'next/navigation';
+import { ArrowRight } from 'lucide-react';
 import { vendorSearchRequestSchema, type Vendor } from '@scouvela/shared';
 import { ResultGrid, ResultsHeader } from '@/components/results/ResultsHeader';
 import { VendorResultCard } from '@/components/results/VendorResultCard';
@@ -42,8 +43,8 @@ const emptyForm: FormValues = {
 
 const sortOptions = [
   { value: 'relevant', label: 'Most relevant' },
+  { value: 'rating', label: 'Highest rated' },
   { value: 'recent', label: 'Recently discovered' },
-  { value: 'rating', label: 'Highest listed rating' },
 ];
 
 function writeQueryString(filters: VendorFilters, sort: VendorSort): string {
@@ -230,7 +231,9 @@ export function VendorSearchView({
         />
       ) : null}
 
-      {status === 'loading' ? <LoadingState label="Searching the demo vendor dataset" /> : null}
+      {status === 'loading' ? (
+        <LoadingState label="Searching the demo vendor dataset" variant="vendor" />
+      ) : null}
 
       {status === 'error' ? (
         <ErrorState
@@ -261,6 +264,25 @@ export function VendorSearchView({
               <VendorResultCard key={vendor.id} vendor={vendor} />
             ))}
           </ResultGrid>
+          {results.length > 0 && results.length <= 3 ? (
+            <button
+              type="button"
+              className="group flex w-full items-center justify-between gap-3 rounded-lg border border-border bg-background px-4 py-3 text-left transition-colors hover:border-primary"
+              onClick={() => {
+                const next = { ...emptyForm, state: 'Lagos' };
+                setValues(next);
+                void runSearch(filtersFromVendorForm(next));
+              }}
+            >
+              <span className="text-sm text-muted">
+                Only a few results. <span className="font-semibold text-primary">Broaden your search</span> — search all of Lagos.
+              </span>
+              <ArrowRight
+                className="h-4 w-4 shrink-0 text-primary transition-transform group-hover:translate-x-1"
+                aria-hidden="true"
+              />
+            </button>
+          ) : null}
         </div>
       ) : null}
     </div>

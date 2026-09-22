@@ -1,3 +1,5 @@
+import { Button } from '@/components/ui/Button';
+
 type EmptyStateProps = {
   variant: 'funding' | 'vendors';
   onReset: () => void;
@@ -26,9 +28,9 @@ export function EmptyState({ variant, onReset }: EmptyStateProps) {
         <li>Search with a shorter keyword</li>
         <li>Leave optional fields blank</li>
       </ul>
-      <button type="button" className="btn-primary mt-5" onClick={onReset}>
+      <Button className="mt-5" onClick={onReset}>
         Reset filters
-      </button>
+      </Button>
     </div>
   );
 }

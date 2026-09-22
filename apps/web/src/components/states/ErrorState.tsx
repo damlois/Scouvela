@@ -1,3 +1,5 @@
+import { Button } from '@/components/ui/Button';
+
 type ErrorStateProps = {
   message?: string;
   onRetry: () => void;
@@ -14,12 +16,10 @@ export function ErrorState({
       <h2 className="text-lg font-semibold text-text">Something went wrong</h2>
       <p className="mt-2 text-sm leading-6 text-muted">{message}</p>
       <div className="mt-5 flex flex-wrap gap-3">
-        <button type="button" className="btn-primary" onClick={onRetry}>
-          Retry search
-        </button>
-        <button type="button" className="btn-secondary" onClick={onReset}>
+        <Button onClick={onRetry}>Retry search</Button>
+        <Button variant="secondary" onClick={onReset}>
           Reset search
-        </button>
+        </Button>
       </div>
     </div>
   );

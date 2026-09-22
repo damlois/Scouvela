@@ -3,13 +3,14 @@
 import { useId } from 'react';
 import { useAudience } from '@/components/audience/AudienceProvider';
 import { Logo } from '@/components/layout/Logo';
+import { Button } from '@/components/ui/Button';
 
 export function AudienceEntry() {
   const { ready, setUserType } = useAudience();
   const titleId = useId();
 
   return (
-    <div className="flex min-h-screen flex-col bg-background">
+    <div className="flex min-h-screen flex-col bg-surface">
       <main className="flex flex-1 flex-col items-center justify-center px-6 py-16">
         <div className="flex w-full max-w-md flex-col items-center text-center">
           <Logo href={null} size="hero" priority />
@@ -26,20 +27,16 @@ export function AudienceEntry() {
                 service nearby.
               </p>
               <div className="mt-8 flex w-full flex-col gap-3">
-                <button
-                  type="button"
-                  className="btn-primary w-full"
-                  onClick={() => setUserType('business')}
-                >
+                <Button className="w-full" onClick={() => setUserType('business')}>
                   Yes, I run a business
-                </button>
-                <button
-                  type="button"
-                  className="btn-secondary w-full"
+                </Button>
+                <Button
+                  variant="secondary"
+                  className="w-full"
                   onClick={() => setUserType('individual')}
                 >
                   No, I just need a local service
-                </button>
+                </Button>
               </div>
             </>
           ) : (

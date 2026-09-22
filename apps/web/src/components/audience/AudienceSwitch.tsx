@@ -22,26 +22,40 @@ export function AudienceSwitch({
 
   const isMenu = variant === 'menu';
 
+  const wrapperClass = isMenu
+    ? 'grid w-full grid-cols-2 rounded-md border-2 border-primary p-0.5'
+    : 'inline-grid grid-cols-2 gap-0.5 rounded-md border border-border bg-background p-1';
+
+  const helperText = "Changes what's shown, not what you can access.";
+
   return (
     <div className={cn('flex flex-col gap-2', isMenu && 'w-full')}>
       <p className={cn(isMenu ? 'text-sm font-semibold text-text' : 'sr-only')}>I am a</p>
+      {isMenu ? <p className="text-xs text-muted">{helperText}</p> : null}
       <div
         role="group"
         aria-label="Choose whether you are a business owner"
-        className={cn('grid grid-cols-2 rounded-md border-2 border-primary p-0.5', isMenu && 'w-full')}
+        title={helperText}
+        className={wrapperClass}
       >
         {options.map((option) => {
           const selected = userType === option.value;
+          const buttonClass = isMenu
+            ? cn(
+                'min-h-11 whitespace-nowrap rounded px-2 text-sm font-semibold transition-colors sm:px-3',
+                selected ? 'bg-primary text-white' : 'bg-surface text-primary hover:bg-background',
+              )
+            : cn(
+                'min-h-9 whitespace-nowrap rounded px-3 py-1.5 text-sm font-semibold transition-colors',
+                selected ? 'bg-primary text-white shadow-sm' : 'text-muted hover:text-primary',
+              );
           return (
             <button
               key={option.value}
               type="button"
               aria-pressed={selected}
               aria-label={option.label}
-              className={cn(
-                'min-h-11 whitespace-nowrap rounded px-2 text-sm font-semibold sm:px-3',
-                selected ? 'bg-primary text-white' : 'bg-surface text-primary hover:bg-background',
-              )}
+              className={buttonClass}
               onClick={() => setUserType(option.value)}
             >
               {isMenu ? option.label : option.shortLabel}

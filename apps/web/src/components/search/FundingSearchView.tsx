@@ -187,7 +187,7 @@ export function FundingSearchView({
       {status === 'idle' ? (
         <InitialState
           title="Search public funding listings"
-          body="Start with a keyword, a state or a funding type. These demonstration records are fictional sample listings, not live calls."
+          body="Start with a keyword, a state or a funding type."
           examples={[
             {
               label: 'Loans in Lagos',

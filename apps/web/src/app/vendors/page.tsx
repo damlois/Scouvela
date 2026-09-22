@@ -1,4 +1,6 @@
 import type { Metadata } from 'next';
+import { Store } from 'lucide-react';
+import { SearchPageHeader } from '@/components/search/SearchPageHeader';
 import { VendorSearchView } from '@/components/search/VendorSearchView';
 import type { VendorFilters, VendorSort } from '@/lib/search';
 
@@ -38,22 +40,25 @@ export default async function VendorsPage({
   };
 
   return (
-    <div className="container-shell section-space space-y-6">
-      <header className="max-w-copy space-y-2">
-        <p className="text-sm font-semibold text-primary">Local Scout</p>
-        <h1 className="text-3xl font-semibold tracking-tight text-text">Find local vendors</h1>
-        <p className="text-sm leading-6 text-muted">
-          Search tailors, bakers, shoemakers, printers, packaging vendors and related services.
-          Anyone can search — for home, an event, or a business. The current demo data focuses on
-          Lagos. Listings are source-listed or unverified, not independently verified.
-        </p>
-      </header>
-      <VendorSearchView
-        previewError={previewError}
-        initialFilters={initialFilters}
-        initialSort={parseSort(params.sort)}
-        hasInitialSearch={Boolean(params.q || params.category || params.ngState || params.locality)}
+    <>
+      <SearchPageHeader
+        eyebrow="Local Scout"
+        icon={<Store className="h-4 w-4" aria-hidden="true" />}
+        title="Find local vendors"
+        description="Find tailors, bakers, printers and more near you."
+        chips={['Tailoring', 'Baking', 'Printing', 'Packaging', 'Photography']}
+        compact
       />
-    </div>
+      <div className="container-shell section-space">
+        <VendorSearchView
+          previewError={previewError}
+          initialFilters={initialFilters}
+          initialSort={parseSort(params.sort)}
+          hasInitialSearch={Boolean(
+            params.q || params.category || params.ngState || params.locality,
+          )}
+        />
+      </div>
+    </>
   );
 }

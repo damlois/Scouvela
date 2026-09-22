@@ -6,6 +6,7 @@ const nextConfig: NextConfig = {
   transpilePackages: ['@scouvela/shared'],
   poweredByHeader: false,
   outputFileTracingRoot: path.join(fileURLToPath(new URL('.', import.meta.url)), '../..'),
+  devIndicators: false,
 };
 
 export default nextConfig;

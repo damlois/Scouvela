@@ -17,7 +17,7 @@ const statusStyles: Record<FundingStatus, { className: string; icon: typeof Circ
     icon: MinusCircle,
   },
   unverified: {
-    className: 'border-border bg-surface text-muted',
+    className: 'border-dashed border-muted/50 bg-transparent text-muted',
     icon: CircleAlert,
   },
 };

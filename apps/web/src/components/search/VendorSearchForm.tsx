@@ -1,4 +1,8 @@
 import type { FormEvent } from 'react';
+import { MapPin, Search } from 'lucide-react';
+import { Button } from '@/components/ui/Button';
+import { SelectField, toOptions } from '@/components/ui/SelectField';
+import { TextField } from '@/components/ui/TextField';
 import {
   LAGOS_LOCALITIES,
   MAX_RESULT_OPTIONS,
@@ -28,126 +32,84 @@ export function VendorSearchForm({
   isLoading,
   onChange,
   onSubmit,
-  onReset,
 }: VendorSearchFormProps) {
   return (
-    <form onSubmit={onSubmit} className="card grid gap-4 md:grid-cols-2" noValidate>
-      <div className="md:col-span-2">
-        <label htmlFor="vendor-query" className="label">
-          Search keyword
-        </label>
-        <input
+    <form onSubmit={onSubmit} className="card space-y-6 p-5 shadow-md sm:p-6" noValidate>
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-start">
+        <TextField
+          className="flex-1"
           id="vendor-query"
           name="query"
-          className="input"
+          label="Search keyword"
+          icon={<Search className="h-4 w-4" aria-hidden="true" />}
           value={values.query}
           onChange={(event) => onChange('query', event.target.value)}
           placeholder="Uniforms, labels, cakes"
           maxLength={200}
-          aria-invalid={Boolean(errors.query)}
-          aria-describedby={errors.query ? 'vendor-query-error' : 'vendor-demo-hint'}
+          error={errors.query}
         />
-        <p id="vendor-demo-hint" className="mt-1 text-sm text-muted">
-          Demo listings currently focus on Lagos localities such as Yaba, Surulere, Ikeja, Lekki and
-          Victoria Island.
-        </p>
-        {errors.query ? (
-          <p id="vendor-query-error" className="mt-1 text-sm text-error" role="alert">
-            {errors.query}
-          </p>
-        ) : null}
+        <Button type="submit" className="w-full sm:mt-[1.625rem] sm:w-auto sm:min-w-36" disabled={isLoading}>
+          {isLoading ? 'Searching…' : 'Search vendors'}
+        </Button>
       </div>
 
-      <div>
-        <label htmlFor="vendor-category" className="label">
-          Service category
-        </label>
-        <select
+      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+        <SelectField
           id="vendor-category"
-          className="input"
+          label="Service category"
+          placeholder="All services"
+          options={SERVICE_CATEGORIES}
           value={values.serviceCategory}
           onChange={(event) => onChange('serviceCategory', event.target.value)}
-        >
-          <option value="">All services</option>
-          {SERVICE_CATEGORIES.map((category) => (
-            <option key={category.value} value={category.value}>
-              {category.label}
-            </option>
-          ))}
-        </select>
-      </div>
-
-      <div>
-        <label htmlFor="vendor-state" className="label">
-          Nigerian state
-        </label>
-        <select
+        />
+        <SelectField
           id="vendor-state"
-          className="input"
+          label="Nigerian state"
+          placeholder="All states"
+          options={toOptions(NIGERIAN_STATES)}
           value={values.state}
           onChange={(event) => onChange('state', event.target.value)}
-        >
-          <option value="">All states</option>
-          {NIGERIAN_STATES.map((state) => (
-            <option key={state} value={state}>
-              {state}
-            </option>
-          ))}
-        </select>
-      </div>
-
-      <div>
-        <label htmlFor="vendor-locality" className="label">
-          Locality
-        </label>
-        <input
-          id="vendor-locality"
-          className="input"
-          list="lagos-localities"
-          value={values.locality}
-          onChange={(event) => onChange('locality', event.target.value)}
-          placeholder="Yaba"
         />
-        <datalist id="lagos-localities">
-          {LAGOS_LOCALITIES.map((locality) => (
-            <option key={locality} value={locality} />
-          ))}
-        </datalist>
-      </div>
-
-      <div>
-        <label htmlFor="vendor-max-results" className="label">
-          Maximum number of results
-        </label>
-        <select
+        <div>
+          <TextField
+            id="vendor-locality"
+            label="Locality"
+            icon={<MapPin className="h-4 w-4" aria-hidden="true" />}
+            list="lagos-localities"
+            value={values.locality}
+            onChange={(event) => onChange('locality', event.target.value)}
+            placeholder="Yaba"
+          />
+          <datalist id="lagos-localities">
+            {LAGOS_LOCALITIES.map((locality) => (
+              <option key={locality} value={locality} />
+            ))}
+          </datalist>
+        </div>
+        <SelectField
           id="vendor-max-results"
-          className="input"
+          label="Maximum results"
+          options={toOptions(MAX_RESULT_OPTIONS)}
           value={values.maxResults}
           onChange={(event) => onChange('maxResults', event.target.value)}
-          aria-invalid={Boolean(errors.maxResults)}
-          aria-describedby={errors.maxResults ? 'vendor-max-error' : undefined}
-        >
-          {MAX_RESULT_OPTIONS.map((option) => (
-            <option key={option} value={option}>
-              {option}
-            </option>
-          ))}
-        </select>
-        {errors.maxResults ? (
-          <p id="vendor-max-error" className="mt-1 text-sm text-error" role="alert">
-            {errors.maxResults}
-          </p>
-        ) : null}
+          error={errors.maxResults}
+        />
       </div>
 
-      <div className="flex flex-col gap-3 sm:flex-row md:col-span-2">
-        <button type="submit" className="btn-primary min-w-36" disabled={isLoading}>
-          {isLoading ? 'Searching…' : 'Search'}
-        </button>
-        <button type="button" className="btn-secondary" onClick={onReset} disabled={isLoading}>
-          Clear
-        </button>
+      <div className="flex flex-wrap items-center gap-2">
+        <span className="text-xs font-semibold uppercase tracking-wide text-muted">Popular:</span>
+        {LAGOS_LOCALITIES.map((locality) => (
+          <button
+            key={locality}
+            type="button"
+            onClick={() => onChange('locality', locality)}
+            className="rounded-full border border-border bg-background px-3 py-1 text-xs font-medium text-text transition-colors hover:border-primary hover:text-primary"
+          >
+            {locality}
+          </button>
+        ))}
       </div>
+
     </form>
   );
 }

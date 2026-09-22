@@ -8,20 +8,22 @@
   --accent: #f5a623;
   --text: #17211e;
   --muted-text: #60706a;
-  --background: #f5faf8;
+  --background: #f5f5f3;
   --surface: #ffffff;
-  --border: #dde9e5;
+  --border: #e5e5e1;
   --error: #b42318;
   --success: #067647;
 }
 
 html {
   scroll-behavior: smooth;
+  overflow-x: hidden;
 }
 
 body {
   color: var(--text);
-  background: var(--background);
+  background: var(--surface);
+  overflow-x: hidden;
 }
 
 :focus-visible {
@@ -43,9 +45,24 @@ body {
   }
 }
 
+@keyframes slide-down {
+  from {
+    opacity: 0;
+    transform: translateY(-4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-slide-down {
+  animation: slide-down 0.15s ease-out;
+}
+
 @layer components {
   .container-shell {
-    @apply mx-auto w-full max-w-6xl px-4 sm:px-6;
+    @apply mx-auto w-full max-w-6xl px-5 sm:px-8;
   }
 
   .section-space {
@@ -57,7 +74,7 @@ body {
   }
 
   .btn-primary {
-    @apply btn bg-primary text-white hover:bg-primary-dark;
+    @apply btn bg-primary text-white shadow-sm hover:bg-primary-dark hover:shadow;
   }
 
   .btn-secondary {
@@ -77,6 +94,6 @@ body {
   }
 
   .card {
-    @apply rounded-lg border border-border bg-surface p-5;
+    @apply rounded-lg border border-border bg-surface p-5 shadow-sm;
   }
 }

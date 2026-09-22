@@ -16,12 +16,10 @@ export function ResultsHeader({
   sortValue,
   sortOptions,
   onSortChange,
-  onClearFilters,
-  canClear,
 }: ResultsHeaderProps) {
   return (
-    <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-      <p className="text-sm font-medium text-text" aria-live="polite">
+    <div className="flex flex-row items-center justify-between gap-3">
+      <p className="min-w-0 truncate text-sm font-medium text-text" aria-live="polite">
         {summary}
       </p>
       <div className="flex flex-wrap items-center gap-3">
@@ -40,11 +38,6 @@ export function ResultsHeader({
             </option>
           ))}
         </select>
-        {canClear && onClearFilters ? (
-          <button type="button" className="btn-ghost min-h-11" onClick={onClearFilters}>
-            Clear all filters
-          </button>
-        ) : null}
       </div>
     </div>
   );
