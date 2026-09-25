@@ -19,6 +19,7 @@
     "lint": "eslint packages/shared apps/actor && npm run lint -w @scouvela/web",
     "typecheck": "npm run typecheck --workspaces --if-present",
     "test": "npm run test --workspaces --if-present",
+    "check:actor": "npm run build -w @scouvela/shared && npm run typecheck -w @scouvela/actor && npm test -w @scouvela/actor && npm run lint -w @scouvela/actor",
     "format": "prettier --write .",
     "format:check": "prettier --check ."
   },

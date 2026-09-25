@@ -68,7 +68,7 @@ export function inferFundingType(text: string): OpportunityType | undefined {
 
 function extractAmount(text: string): string | undefined {
   const match = text.match(
-    /(?:loan amount|,\ size|single obligor limit|up to)\s*[-:]?\s*(₦\s*[\d,.]+\s*(?:billion|million)?)/i,
+    /(?:loan amount|, size|single obligor limit|up to)\s*[-:]?\s*(₦\s*[\d,.]+\s*(?:billion|million)?)/i,
   );
   return emptyToUndefined(match?.[1]);
 }
