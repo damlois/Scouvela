@@ -1,5 +1,6 @@
 'use client';
 
+import Image from 'next/image';
 import { ArrowRight, Banknote, CheckCircle2, Store } from 'lucide-react';
 import { useAudience } from '@/components/audience/AudienceProvider';
 import { Button } from '@/components/ui/Button';
@@ -10,6 +11,8 @@ import { cn } from '@/lib/utils';
 
 type Mode = {
   icon: typeof Banknote;
+  image: string;
+  imageAlt: string;
   title: string;
   body: string;
   bullets: string[];
@@ -29,47 +32,59 @@ function ModeCard({ mode, wide }: { mode: Mode; wide: boolean }) {
   );
 
   return (
-    <article
-      className={cn(
-        'card group relative flex flex-col overflow-hidden transition-all duration-200 hover:-translate-y-1 hover:border-primary/30 hover:shadow-md',
-        wide ? 'p-6 sm:p-8 md:flex-row md:items-center md:gap-10' : 'p-5 sm:p-6',
-      )}
-    >
-      {wide ? (
-        <GlowLayer>
-          <Glow className="-right-16 -top-16 h-56 w-56 bg-primary/10" />
-        </GlowLayer>
-      ) : null}
-
-      <div className={cn('relative', wide ? 'md:max-w-sm' : '')}>
-        <IconBadge
-          icon={<mode.icon className={wide ? 'h-6 w-6' : 'h-5 w-5'} aria-hidden="true" />}
-          size={wide ? 'lg' : 'md'}
-          className="transition-transform duration-200 group-hover:scale-110"
+    <article className="card group flex flex-col overflow-hidden p-0 transition-all duration-200 hover:-translate-y-1 hover:border-primary/30 hover:shadow-md">
+      <div className="relative h-36 sm:h-44">
+        <Image
+          src={mode.image}
+          alt={mode.imageAlt}
+          fill
+          sizes="(min-width: 1024px) 480px, 100vw"
+          className="object-cover transition-transform duration-300 group-hover:scale-105"
         />
-        <h3 className={cn('mt-4 font-semibold text-text', wide ? 'text-xl' : 'text-lg')}>
-          {mode.title}
-        </h3>
-        <p className="mt-2 text-sm leading-6 text-muted">{mode.body}</p>
-        {wide ? <div className="mt-5">{cta}</div> : null}
       </div>
 
-      <ul className={cn('relative space-y-2', wide ? 'mt-6 md:mt-0 md:flex-1' : 'mt-4')}>
-        {mode.bullets.map((bullet) => (
-          <li
-            key={bullet}
-            className={cn(
-              'flex items-start gap-2 text-sm text-muted',
-              wide && 'rounded-lg border border-border bg-background p-3',
-            )}
-          >
-            <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0 text-primary" aria-hidden="true" />
-            {bullet}
-          </li>
-        ))}
-      </ul>
+      <div
+        className={cn(
+          'relative flex flex-1 flex-col p-5 sm:p-6',
+          wide && 'md:flex-row md:items-center md:gap-10',
+        )}
+      >
+        {wide ? (
+          <GlowLayer>
+            <Glow className="-right-16 -top-16 h-56 w-56 bg-primary/10" />
+          </GlowLayer>
+        ) : null}
 
-      {wide ? null : <div className="relative mt-4">{cta}</div>}
+        <div className={cn('relative', wide ? 'md:max-w-sm' : '')}>
+          <IconBadge
+            icon={<mode.icon className={wide ? 'h-6 w-6' : 'h-5 w-5'} aria-hidden="true" />}
+            size={wide ? 'lg' : 'md'}
+            className="transition-transform duration-200 group-hover:scale-110"
+          />
+          <h3 className={cn('mt-4 font-semibold text-text', wide ? 'text-xl' : 'text-lg')}>
+            {mode.title}
+          </h3>
+          <p className="mt-2 text-sm leading-6 text-muted">{mode.body}</p>
+          {wide ? <div className="mt-5">{cta}</div> : null}
+        </div>
+
+        <ul className={cn('relative space-y-2', wide ? 'mt-6 md:mt-0 md:flex-1' : 'mt-4')}>
+          {mode.bullets.map((bullet) => (
+            <li
+              key={bullet}
+              className={cn(
+                'flex items-start gap-2 text-sm text-muted',
+                wide && 'rounded-lg border border-border bg-background p-3',
+              )}
+            >
+              <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0 text-primary" aria-hidden="true" />
+              {bullet}
+            </li>
+          ))}
+        </ul>
+
+        {wide ? null : <div className="relative mt-4">{cta}</div>}
+      </div>
     </article>
   );
 }
@@ -82,6 +97,8 @@ export function SearchModes() {
       ? [
           {
             icon: Banknote,
+            image: '/images/funding-scout-growth.jpg',
+            imageAlt: 'A hand-drawn upward growth chart with a ruler and pens, representing business growth and funding',
             title: 'Funding Scout',
             body: 'Find loans, grants, accelerators and support programmes currently listed for Nigerian SMEs and business owners.',
             bullets: [
@@ -96,6 +113,8 @@ export function SearchModes() {
       : []),
     {
       icon: Store,
+      image: '/images/local-scout-market.jpg',
+      imageAlt: 'An aerial view of a bustling street market in Lagos, Nigeria, with colourful umbrellas',
       title: 'Local Scout',
       body: 'Find tailors, bakers, shoemakers, printers, packaging vendors and related services by location.',
       bullets: [
