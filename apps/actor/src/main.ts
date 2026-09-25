@@ -1,17 +1,16 @@
 import { Actor, log } from 'apify';
 import { actorInputSchema } from '@scouvela/shared';
-import { runFundingCrawler } from './crawlers/funding-crawler.js';
-import { runVendorCrawler } from './crawlers/vendor-crawler.js';
-import { finaliseFundingRecords, finaliseVendorRecords } from './pipeline.js';
-import { boiFundingSource } from './sources/funding/boi-funding-source.js';
-import { finelibVendorSource } from './sources/vendors/finelib-vendor-source.js';
+import { applyAiSearchPlan, enrichOpportunities, writeOpportunityReport } from './ai/agent.js';
+import { crawlSelectedSources } from './crawlers/opportunity-crawler.js';
+import { planSearchFromQuery } from './input/planner.js';
+import { finaliseOpportunities } from './pipeline.js';
 import { toIsoDate } from './utils/dates.js';
 import { ActorInputError } from './utils/errors.js';
 import { createRunStats, formatRunSummary } from './utils/stats.js';
 
 function publicErrorMessage(error: unknown): string {
   if (error instanceof Error) {
-    return error.message;
+    return error.message.replace(/sk-[a-zA-Z0-9_-]+/g, '[redacted]');
   }
 
   return 'Unknown Actor error';
@@ -35,45 +34,38 @@ try {
     throw new ActorInputError(`Invalid Actor input: ${formatInputError(parsedInput.error.issues)}`);
   }
 
-  const input = parsedInput.data;
-  const discoveredAt = toIsoDate();
+  const stats = createRunStats();
+  const scrapedAt = toIsoDate();
+  const planned = planSearchFromQuery(parsedInput.data);
+  const input = await applyAiSearchPlan(planned, stats);
 
-  if (input.mode === 'funding') {
-    const stats = createRunStats(input.mode, boiFundingSource.sourceName);
-    log.info('Starting Scouvela funding crawl', {
-      source: stats.sourceName,
-      maxResults: input.maxResults,
-      hasQuery: Boolean(input.query),
-    });
+  log.info('Starting Scouvela African SME opportunity crawl', {
+    countries: input.countries,
+    opportunityTypes: input.opportunityTypes ?? [],
+    maxResults: input.maxResults,
+    aiEnabled: input.ai.enabled,
+  });
 
-    const rawRecords = await runFundingCrawler(input, stats);
-    const validated = finaliseFundingRecords(rawRecords, input, discoveredAt, stats);
+  const rawRecords = await crawlSelectedSources(input, stats);
+  const validated = finaliseOpportunities(rawRecords, input, scrapedAt, stats);
+  const output = await enrichOpportunities(validated, input, stats);
 
-    for (const item of validated) {
-      await Actor.pushData(item);
-    }
-
-    stats.recordsSaved = validated.length;
-    log.info('Funding crawl complete', formatRunSummary(stats));
-  } else {
-    const stats = createRunStats(input.mode, finelibVendorSource.sourceName);
-    log.info('Starting Scouvela vendor crawl', {
-      source: stats.sourceName,
-      maxResults: input.maxResults,
-      serviceCategory: input.serviceCategory,
-      state: input.state,
-    });
-
-    const rawRecords = await runVendorCrawler(input, stats);
-    const validated = finaliseVendorRecords(rawRecords, input, discoveredAt, stats);
-
-    for (const item of validated) {
-      await Actor.pushData(item);
-    }
-
-    stats.recordsSaved = validated.length;
-    log.info('Vendor crawl complete', formatRunSummary(stats));
+  for (const item of output) {
+    await Actor.pushData(item);
   }
+
+  stats.recordsSaved = output.length;
+  await writeOpportunityReport(output, input, stats);
+
+  if (output.length === 0 && stats.sourcesCompleted.length === 0 && stats.failedSources.length > 0) {
+    throw new Error(
+      `No opportunities were saved. Failed sources: ${stats.failedSources
+        .map((item) => `${item.sourceId}: ${item.message}`)
+        .join('; ')}`,
+    );
+  }
+
+  log.info('Opportunity crawl complete', formatRunSummary(stats));
 } catch (error) {
   exitCode = 1;
   log.error('Scouvela Actor failed', { message: publicErrorMessage(error) });

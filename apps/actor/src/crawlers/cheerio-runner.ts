@@ -19,7 +19,7 @@ export async function crawlSource<TRaw>(options: {
   stats: RunStats;
   requireIndexLinks?: boolean;
 }): Promise<TRaw[]> {
-  const { adapter, input, stats, requireIndexLinks = true } = options;
+  const { adapter, input, stats } = options;
 
   if (!isLiveSourceApproved(adapter.approvalEnvVar)) {
     throw new SourceNotApprovedError(
@@ -36,9 +36,11 @@ export async function crawlSource<TRaw>(options: {
   const seen = new Set<string>();
   let indexPages = 0;
   let discoveredDetailLinks = 0;
+  const startLabel = adapter.startLabel ?? 'index';
+  const requireIndexLinks = options.requireIndexLinks ?? adapter.requireIndexLinks ?? true;
   const startRequests = startUrls
     .filter((url) => isAllowedHttpUrl(url, adapter.allowedHosts, adapter.allowedPathPrefixes))
-    .map((url) => ({ url, userData: { label: 'index' as const } }));
+    .map((url) => ({ url, userData: { label: startLabel } }));
 
   if (startRequests.length === 0) {
     throw new SourceStructureError(`No allowed start URLs were generated for ${adapter.sourceName}.`);

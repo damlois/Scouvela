@@ -26,7 +26,7 @@
 - [ ] Every result still includes the original `sourceUrl`
 - [ ] I did not invent scraped records or unverified “verified” labels
 - [ ] Mock mode still works for frontend development (`USE_MOCK_DATA=true`)
-- [ ] `pnpm lint`, `pnpm typecheck`, and `pnpm test` pass
+- [ ] `npm run lint`, `npm run typecheck`, and `npm test` pass
 - [ ] I tested the affected route or Actor path locally
 
 ### How to test

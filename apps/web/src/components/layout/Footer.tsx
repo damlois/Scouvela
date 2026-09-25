@@ -1,18 +1,14 @@
-'use client';
-
 import Link from 'next/link';
-import { AudienceSwitch } from '@/components/audience/AudienceSwitch';
-import { useAudience } from '@/components/audience/AudienceProvider';
 import { Logo } from '@/components/layout/Logo';
+
+const footerLinks = [
+  { href: '/', label: 'Home' },
+  { href: '/funding', label: 'Find Funding' },
+  { href: '/vendors', label: 'Find Vendors' },
+];
 
 export function Footer() {
   const year = new Date().getFullYear();
-  const { isBusiness, userType } = useAudience();
-  const footerLinks = [
-    { href: '/', label: 'Home' },
-    ...(isBusiness ? [{ href: '/funding', label: 'Find Funding' }] : []),
-    { href: '/vendors', label: 'Find Vendors' },
-  ];
 
   return (
     <footer className="mt-auto border-t border-border bg-surface">
@@ -20,9 +16,8 @@ export function Footer() {
         <div className="max-w-md space-y-3">
           <Logo href="/" />
           <p className="text-sm leading-6 text-muted">
-            {isBusiness
-              ? 'Scouvela helps business owners in Nigeria find publicly listed SME funding and local service providers, with the original source attached to every result.'
-              : 'Scouvela helps anyone in Nigeria find local service providers such as tailors, bakers, printers and photographers, with the original source attached to every result.'}
+            Scouvela helps people in Nigeria find publicly listed SME funding and local service
+            providers, with the original source attached to every result.
           </p>
         </div>
         <nav aria-label="Footer">
@@ -41,10 +36,7 @@ export function Footer() {
       <div className="border-t border-border">
         <div className="container-shell flex flex-col gap-2 py-4 text-xs text-muted sm:flex-row sm:items-center sm:justify-between">
           <p>Built with Apify for the She Code Africa × Apify Hackathon</p>
-          <p className="flex flex-wrap items-center gap-x-3 gap-y-1">
-            {userType ? <AudienceSwitch /> : null}
-            <span>© {year} Scouvela. Listings are source-linked, not independently verified.</span>
-          </p>
+          <p>© {year} Scouvela. Listings are source-linked, not independently verified.</p>
         </div>
       </div>
     </footer>

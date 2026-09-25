@@ -1,0 +1,13 @@
+{
+  "query": "Find grants and accelerator programmes for a woman-owned Nigerian fashion business that wants to export",
+  "countries": ["Nigeria"],
+  "opportunityTypes": ["grant", "accelerator", "training"],
+  "maxResults": 10,
+  "includeExpired": true,
+  "ai": {
+    "enabled": true,
+    "provider": "openai",
+    "model": "gpt-4.1-mini",
+    "generateReport": true
+  }
+}

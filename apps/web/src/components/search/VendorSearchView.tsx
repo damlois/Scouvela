@@ -210,7 +210,7 @@ export function VendorSearchView({
       {status === 'idle' ? (
         <InitialState
           title="Browse Lagos service listings"
-          body="Anyone can search — for home, an event, or a business. Live results currently come from Finelib Lagos category pages. Try tailoring in Ikeja or Yaba. Confirm every listing at the original source."
+          body="Live results currently come from Finelib Lagos category pages. Try tailoring in Ikeja or Yaba. Confirm every listing at the original source."
           examples={[
             {
               label: 'Tailoring in Ikeja',

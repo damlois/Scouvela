@@ -2,20 +2,23 @@
   "name": "scouvela",
   "version": "0.1.0",
   "private": true,
-  "description": "Apify-powered discovery platform for Nigerian SME funding and local service providers.",
-  "packageManager": "pnpm@9.15.9",
+  "description": "Apify Actor that discovers public growth opportunities for African SMEs.",
   "engines": {
     "node": ">=20"
   },
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
   "scripts": {
-    "predev": "node scripts/ensure-local-next-cache.mjs && pnpm --filter @scouvela/shared build",
-    "dev": "pnpm --filter @scouvela/web dev",
-    "dev:web": "pnpm --filter @scouvela/web dev",
-    "dev:actor": "pnpm --filter @scouvela/actor start",
-    "build": "pnpm --filter @scouvela/shared build && pnpm --filter @scouvela/web build && pnpm --filter @scouvela/actor build",
-    "lint": "eslint packages/shared apps/actor && pnpm --filter @scouvela/web lint",
-    "typecheck": "pnpm -r --if-present typecheck",
-    "test": "pnpm -r --if-present test",
+    "predev": "node scripts/ensure-local-next-cache.mjs && npm run build -w @scouvela/shared",
+    "dev": "npm run dev -w @scouvela/web",
+    "dev:web": "npm run dev -w @scouvela/web",
+    "dev:actor": "npm start -w @scouvela/actor",
+    "build": "npm run build -w @scouvela/shared && npm run build -w @scouvela/web && npm run build -w @scouvela/actor",
+    "lint": "eslint packages/shared apps/actor && npm run lint -w @scouvela/web",
+    "typecheck": "npm run typecheck --workspaces --if-present",
+    "test": "npm run test --workspaces --if-present",
     "format": "prettier --write .",
     "format:check": "prettier --check ."
   },

@@ -4,13 +4,10 @@ import { useEffect, useId, useState } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { Menu, X } from 'lucide-react';
-import { AudienceSwitch } from '@/components/audience/AudienceSwitch';
-import { useAudience } from '@/components/audience/AudienceProvider';
 import { Logo } from '@/components/layout/Logo';
-import { defaultSearchPath } from '@/lib/user-type';
 import { cn } from '@/lib/utils';
 
-const allLinks = [
+const links = [
   { href: '/', label: 'Home' },
   { href: '/funding', label: 'Find Funding' },
   { href: '/vendors', label: 'Find Vendors' },
@@ -26,12 +23,8 @@ function isActive(pathname: string, href: string): boolean {
 
 export function Navbar() {
   const pathname = usePathname();
-  const { isBusiness, userType } = useAudience();
   const [open, setOpen] = useState(false);
   const menuId = useId();
-  const links = isBusiness ? allLinks : allLinks.filter((link) => link.href !== '/funding');
-  const searchHref = defaultSearchPath(userType);
-  const searchLabel = isBusiness ? 'Start searching' : 'Find a vendor';
 
   useEffect(() => {
     setOpen(false);
@@ -85,11 +78,8 @@ export function Navbar() {
           ))}
         </nav>
         <div className="flex items-center gap-2 sm:gap-3">
-          <div className="hidden sm:block">
-            <AudienceSwitch />
-          </div>
-          <Link href={searchHref} className="btn-primary hidden shrink-0 lg:inline-flex">
-            {searchLabel}
+          <Link href="/funding" className="btn-primary hidden shrink-0 lg:inline-flex">
+            Start searching
           </Link>
           <button
             type="button"
@@ -107,19 +97,9 @@ export function Navbar() {
           </button>
         </div>
       </div>
-      {!open ? (
-        <div className="border-t border-border bg-background sm:hidden">
-          <div className="container-shell py-2">
-            <AudienceSwitch variant="menu" />
-          </div>
-        </div>
-      ) : null}
       {open ? (
         <div id={menuId} className="border-t border-border bg-surface lg:hidden">
           <nav aria-label="Mobile" className="container-shell flex flex-col gap-1 py-4">
-            <div className="mb-3 sm:hidden">
-              <AudienceSwitch variant="menu" />
-            </div>
             {links.map((link) => (
               <Link
                 key={link.href}
@@ -134,8 +114,8 @@ export function Navbar() {
                 {link.label}
               </Link>
             ))}
-            <Link href={searchHref} className="btn-primary mt-2" onClick={() => setOpen(false)}>
-              {searchLabel}
+            <Link href="/funding" className="btn-primary mt-2" onClick={() => setOpen(false)}>
+              Start searching
             </Link>
           </nav>
         </div>

@@ -1,80 +1,55 @@
 import { log } from 'apify';
-import {
-  fundingOpportunitySchema,
-  vendorSchema,
-  type FundingOpportunity,
-  type ParsedActorInput,
-  type Vendor,
-} from '@scouvela/shared';
-import type { RawFundingRecord } from './sources/funding/boi-funding-source.js';
-import type { RawVendorRecord } from './sources/vendors/finelib-vendor-source.js';
-import { transformFundingRecord } from './transformers/funding-transformer.js';
-import { transformVendorRecords } from './transformers/vendor-transformer.js';
-import { deduplicateByKey, fundingDedupeKey, vendorDedupeKey } from './utils/deduplicate.js';
+import { smeOpportunitySchema, type ParsedActorInput, type SmeOpportunity } from '@scouvela/shared';
+import { matchesSavedOpportunity } from './input/filters.js';
+import type { RawOpportunity } from './sources/types.js';
+import { opportunityDedupeKey, transformOpportunity } from './transformers/opportunity-transformer.js';
+import { deduplicateByKey } from './utils/deduplicate.js';
 import type { RunStats } from './utils/stats.js';
 
-function logInvalid(kind: 'funding' | 'vendor', sourceUrl: string | undefined, label: string | undefined): void {
-  log.warning(`Skipped invalid ${kind} record`, {
-    sourceUrl,
-    label,
-  });
-}
-
-export function finaliseFundingRecords(
-  rawRecords: RawFundingRecord[],
+export function finaliseOpportunities(
+  rawRecords: RawOpportunity[],
   input: ParsedActorInput,
-  discoveredAt: string,
+  scrapedAt: string,
   stats: RunStats,
-): FundingOpportunity[] {
-  const transformed: FundingOpportunity[] = [];
+): SmeOpportunity[] {
+  const transformed: SmeOpportunity[] = [];
+
   for (const record of rawRecords) {
-    const item = transformFundingRecord(record, discoveredAt);
+    const item = transformOpportunity(record, scrapedAt);
     if (!item) {
       stats.invalidRecordsSkipped += 1;
-      logInvalid('funding', record.sourceUrl, record.title);
+      log.warning('Skipped invalid opportunity', {
+        sourceUrl: record.sourceUrl,
+        title: record.title,
+      });
       continue;
     }
 
     transformed.push(item);
   }
 
-  const { unique, duplicatesRemoved } = deduplicateByKey(transformed, fundingDedupeKey);
+  const { unique, duplicatesRemoved } = deduplicateByKey(transformed, (item) =>
+    opportunityDedupeKey({
+      provider: item.provider,
+      title: item.title,
+      sourceUrl: item.sourceUrl,
+    }),
+  );
   stats.duplicatesRemoved += duplicatesRemoved;
 
-  const validated: FundingOpportunity[] = [];
+  const validated: SmeOpportunity[] = [];
   for (const record of unique) {
-    const parsed = fundingOpportunitySchema.safeParse(record);
+    const parsed = smeOpportunitySchema.safeParse(record);
     if (!parsed.success) {
       stats.invalidRecordsSkipped += 1;
-      logInvalid('funding', record.sourceUrl, record.title);
+      log.warning('Skipped opportunity that failed schema validation', {
+        sourceUrl: record.sourceUrl,
+        title: record.title,
+      });
       continue;
     }
 
-    validated.push(parsed.data);
-    if (validated.length >= input.maxResults) {
-      break;
-    }
-  }
-
-  return validated;
-}
-
-export function finaliseVendorRecords(
-  rawRecords: RawVendorRecord[],
-  input: ParsedActorInput,
-  discoveredAt: string,
-  stats: RunStats,
-): Vendor[] {
-  const transformed = transformVendorRecords(rawRecords, input, discoveredAt);
-  const { unique, duplicatesRemoved } = deduplicateByKey(transformed, vendorDedupeKey);
-  stats.duplicatesRemoved += duplicatesRemoved;
-
-  const validated: Vendor[] = [];
-  for (const record of unique) {
-    const parsed = vendorSchema.safeParse(record);
-    if (!parsed.success) {
-      stats.invalidRecordsSkipped += 1;
-      logInvalid('vendor', record.sourceUrl, record.name);
+    if (!matchesSavedOpportunity(parsed.data, input)) {
       continue;
     }
 

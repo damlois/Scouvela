@@ -1,4 +1,10 @@
-import type { ParsedActorInput } from '@scouvela/shared';
+import type {
+  OpportunityType,
+  ParsedActorInput,
+  ProviderType,
+  TargetGroup,
+  BusinessStage,
+} from '@scouvela/shared';
 
 export type PageLabel = 'index' | 'detail';
 
@@ -22,12 +28,43 @@ export type HtmlSelection = {
   closest(selector: string): HtmlSelection;
 };
 
-export type SourceAdapter<TRaw> = {
+export type RawOpportunity = {
+  title?: string;
+  provider?: string;
+  providerType?: ProviderType;
+  opportunityType?: OpportunityType;
+  description?: string;
+  countries?: string[];
+  regions?: string[];
+  sectors?: string[];
+  targetGroups?: TargetGroup[];
+  businessStages?: BusinessStage[];
+  benefits?: string[];
+  fundingAmountText?: string;
+  eligibility?: string[];
+  applicationProcess?: string;
+  applicationUrl?: string;
+  sourceUrl?: string;
+  sourceName?: string;
+  publishedAt?: string;
+  deadline?: string;
+  applicationsOpen?: boolean;
+  ongoing?: boolean;
+  isRemote?: boolean;
+  language?: string;
+};
+
+export type SourceAdapter<TRaw = RawOpportunity> = {
+  sourceId: string;
   sourceName: string;
+  countries: readonly string[];
+  opportunityTypes: readonly OpportunityType[];
   allowedHosts: readonly string[];
   allowedPathPrefixes: readonly string[];
   approvalEnvVar: string;
   liveAccessReason: string;
+  startLabel?: PageLabel;
+  requireIndexLinks?: boolean;
   getStartUrls(input: ParsedActorInput): string[];
   classifyUrl(url: string): PageLabel | null;
   parseIndex($: HtmlRoot, pageUrl: string, input: ParsedActorInput): IndexParseResult<TRaw>;
@@ -35,5 +72,5 @@ export type SourceAdapter<TRaw> = {
 };
 
 export function isLiveSourceApproved(envVar: string): boolean {
-  return process.env[envVar] === 'true';
+  return process.env[envVar] === 'true' || process.env.SCOUVELA_FUNDING_SOURCE_APPROVED === 'true';
 }

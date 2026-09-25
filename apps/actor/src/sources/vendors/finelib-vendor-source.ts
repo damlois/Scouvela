@@ -54,7 +54,7 @@ function isFinelibUrl(url: string): boolean {
 }
 
 export function resolveVendorCategory(input: ParsedActorInput): CategoryMapping {
-  const raw = `${input.serviceCategory ?? ''} ${input.query ?? ''}`.toLowerCase();
+  const raw = `${input.query ?? ''} ${(input.sectors ?? []).join(' ')}`.toLowerCase();
   const match = Object.entries(CATEGORY_MAP).find(([key]) => new RegExp(`\\b${key}\\b`, 'i').test(raw));
   if (!match?.[1]) {
     throw new ActorInputError(
@@ -96,7 +96,7 @@ export function classifyFinelibUrl(url: string): PageLabel | null {
 
 export function getFinelibStartUrls(input: ParsedActorInput): string[] {
   const category = resolveVendorCategory(input);
-  const stateSlug = resolveVendorStateSlug(input.state);
+  const stateSlug = resolveVendorStateSlug(input.regions?.[0]);
   return [`https://www.finelib.com/cities/${stateSlug}/business/${category.path}`];
 }
 
@@ -161,7 +161,7 @@ export function parseFinelibIndex(
   input: ParsedActorInput,
 ): IndexParseResult<RawVendorRecord> {
   const category = resolveVendorCategory(input);
-  const state = emptyToUndefined(input.state) ?? 'Lagos';
+  const state = emptyToUndefined(input.regions?.[0]) ?? 'Lagos';
   const detailUrls: string[] = [];
   const records: RawVendorRecord[] = [];
 
@@ -185,7 +185,7 @@ export function parseFinelibIndex(
       name,
       category: category.category,
       state,
-      locality: localityFromAddress(address, input.locality && containsNormalized(address, input.locality) ? input.locality : undefined),
+      locality: localityFromAddress(address, input.regions?.[0] && containsNormalized(address, input.regions[0]) ? input.regions[0] : undefined),
       address,
       phone,
       description,
@@ -193,7 +193,7 @@ export function parseFinelibIndex(
       sourceName: SOURCE_NAME,
     };
 
-    if (!matchesLocality(record, input.locality)) {
+    if (!matchesLocality(record, input.regions?.[0])) {
       return;
     }
 
@@ -224,7 +224,7 @@ export function parseFinelibDetail(
   }
 
   const street = emptyToUndefined($('[itemprop="streetAddress"]').first().text());
-  const locality = emptyToUndefined($('[itemprop="addressLocality"]').first().text()) ?? emptyToUndefined(input.locality);
+  const locality = emptyToUndefined($('[itemprop="addressLocality"]').first().text()) ?? emptyToUndefined(input.regions?.[0]);
   const region = emptyToUndefined($('[itemprop="addressRegion"]').first().text());
   const address = emptyToUndefined([street, locality, region].filter(Boolean).join(', '));
   const websiteHref = $('a[href^="http"]')
@@ -235,7 +235,7 @@ export function parseFinelibDetail(
   const record: RawVendorRecord = {
     name,
     category: category.category,
-    state: emptyToUndefined(input.state) ?? (region?.includes('Lagos') ? 'Lagos' : undefined) ?? 'Lagos',
+    state: emptyToUndefined(input.regions?.[0]) ?? (region?.includes('Lagos') ? 'Lagos' : undefined) ?? 'Lagos',
     locality,
     address,
     phone: parsePhone($('[itemprop="telephone"]').text() || $('.tel-no-div').first().text()),
@@ -246,7 +246,7 @@ export function parseFinelibDetail(
     sourceName: SOURCE_NAME,
   };
 
-  if (!matchesLocality(record, input.locality)) {
+  if (!matchesLocality(record, input.regions?.[0])) {
     return null;
   }
 
@@ -254,7 +254,10 @@ export function parseFinelibDetail(
 }
 
 export const finelibVendorSource: SourceAdapter<RawVendorRecord> = {
+  sourceId: 'finelib-lagos',
   sourceName: SOURCE_NAME,
+  countries: ['Nigeria'],
+  opportunityTypes: ['other'],
   allowedHosts: ALLOWED_HOSTS,
   allowedPathPrefixes: ALLOWED_PATH_PREFIXES,
   approvalEnvVar: VENDOR_SOURCE_APPROVAL_ENV,

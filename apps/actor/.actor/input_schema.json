@@ -1,59 +1,180 @@
 {
-  "title": "Scouvela Discovery Actor input",
+  "title": "African SME opportunity search",
+  "description": "Describe the business you are helping. Standard extraction needs no API key. Optional AI matching uses your own OpenAI key and is billed separately.",
   "type": "object",
   "schemaVersion": 1,
   "properties": {
-    "mode": {
-      "title": "Search mode",
-      "type": "string",
-      "description": "Whether to collect funding opportunities or local vendors.",
-      "enum": ["funding", "vendors"],
-      "default": "funding"
-    },
     "query": {
-      "title": "Query",
+      "title": "What opportunity do you need?",
       "type": "string",
-      "description": "Free-text query such as SME or tailor. Never used as a CSS selector or raw crawl URL.",
-      "editor": "textfield"
+      "description": "Natural-language need, for example opportunities for women-owned fashion businesses. Never used as a CSS selector or raw crawl URL.",
+      "editor": "textfield",
+      "prefill": "opportunities for women-owned fashion SMEs",
+      "example": "opportunities for women-owned fashion SMEs",
+      "sectionCaption": "Search"
     },
-    "businessCategory": {
-      "title": "Business category",
-      "type": "string",
-      "description": "Optional SME category used when searching for funding.",
-      "editor": "textfield"
+    "countries": {
+      "title": "Countries",
+      "type": "array",
+      "description": "MVP sources currently cover Nigeria, Ghana and Kenya, plus Africa-wide programmes. Do not treat this as full continental coverage.",
+      "editor": "select",
+      "items": {
+        "type": "string",
+        "enum": ["Africa-wide", "Nigeria", "Ghana", "Kenya", "South Africa", "Rwanda"],
+        "enumTitles": ["Africa-wide", "Nigeria", "Ghana", "Kenya", "South Africa", "Rwanda"]
+      },
+      "default": ["Nigeria", "Ghana", "Kenya"],
+      "prefill": ["Nigeria", "Ghana"]
     },
-    "serviceCategory": {
-      "title": "Service category",
-      "type": "string",
-      "description": "Vendor category: tailoring, bakery, shoemaker, printing or packaging. Required for vendor mode unless query is set.",
-      "editor": "textfield"
-    },
-    "state": {
-      "title": "State",
-      "type": "string",
-      "description": "Nigerian state. The first vendor source allowlists Lagos listing pages only.",
-      "editor": "textfield"
-    },
-    "locality": {
-      "title": "Locality",
-      "type": "string",
-      "description": "City, LGA or neighbourhood within the selected state, for example Ikeja or Yaba.",
-      "editor": "textfield"
-    },
-    "fundingType": {
-      "title": "Funding type",
-      "type": "string",
-      "description": "Optional funding filter. Ignored when mode is vendors.",
-      "enum": ["loan", "grant", "accelerator", "support-programme"]
+    "opportunityTypes": {
+      "title": "Opportunity types",
+      "type": "array",
+      "description": "Leave empty to keep every matching type from the selected sources.",
+      "editor": "select",
+      "items": {
+        "type": "string",
+        "enum": [
+          "grant",
+          "loan",
+          "funding",
+          "contract",
+          "tender",
+          "procurement",
+          "accelerator",
+          "incubator",
+          "competition",
+          "training",
+          "mentorship",
+          "market-access",
+          "export",
+          "equipment-support",
+          "technology-credit",
+          "business-support",
+          "other"
+        ]
+      },
+      "prefill": ["grant", "accelerator", "training"]
     },
     "maxResults": {
       "title": "Maximum results",
       "type": "integer",
-      "description": "Maximum number of valid records to push to the dataset. Default 5. Hard cap is 20.",
+      "description": "How many valid opportunities to save. Default 20. Hard cap 50. You pay per saved dataset item.",
       "minimum": 1,
-      "maximum": 20,
-      "default": 5
+      "maximum": 50,
+      "default": 20,
+      "prefill": 10
+    },
+    "sectors": {
+      "title": "Sectors",
+      "type": "array",
+      "description": "Optional sector hints such as fashion, agriculture or green.",
+      "editor": "stringList",
+      "prefill": ["fashion", "creative-industries"],
+      "sectionCaption": "Filters"
+    },
+    "targetGroups": {
+      "title": "Target groups",
+      "type": "array",
+      "description": "Optional. Keep programmes aimed at groups such as women-owned, youth-owned or green businesses.",
+      "editor": "select",
+      "items": {
+        "type": "string",
+        "enum": [
+          "all-smes",
+          "women-owned",
+          "youth-owned",
+          "disability-inclusive",
+          "rural-businesses",
+          "startups",
+          "informal-businesses",
+          "exporters",
+          "social-enterprises",
+          "agribusinesses",
+          "creative-businesses",
+          "technology-businesses",
+          "green-businesses"
+        ]
+      },
+      "prefill": ["women-owned"]
+    },
+    "businessStages": {
+      "title": "Business stages",
+      "type": "array",
+      "description": "Optional. idea, early-stage, growth or export-ready.",
+      "editor": "select",
+      "items": {
+        "type": "string",
+        "enum": ["idea", "early-stage", "growth", "export-ready"]
+      }
+    },
+    "includeExpired": {
+      "title": "Include expired opportunities",
+      "type": "boolean",
+      "description": "Keep programmes whose published deadline has already passed.",
+      "default": false
+    },
+    "closingWithinDays": {
+      "title": "Closing within days",
+      "type": "integer",
+      "description": "Optional. Only keep opportunities with a deadline inside this many days.",
+      "minimum": 1,
+      "maximum": 365
+    },
+    "requireDeadline": {
+      "title": "Require a deadline",
+      "type": "boolean",
+      "description": "If enabled, drop opportunities that do not publish a deadline.",
+      "default": false
+    },
+    "requireApplicationUrl": {
+      "title": "Require an application URL",
+      "type": "boolean",
+      "description": "If enabled, drop opportunities that do not include an application link.",
+      "default": false
+    },
+    "ai": {
+      "title": "AI Opportunity Agent",
+      "type": "object",
+      "editor": "json",
+      "description": "Optional. Standard extraction works with AI off. When enabled, you supply your own OpenAI key. Scouvela charges only for successful AI events; OpenAI bills you separately.",
+      "sectionCaption": "Optional AI add-on",
+      "sectionDescription": "Bring your own OpenAI key. The key is never written to the Dataset, logs, or Actor output.",
+      "properties": {
+        "enabled": {
+          "title": "Enable AI matching",
+          "type": "boolean",
+          "description": "Plans the search, summarises each saved opportunity, and optionally writes a brief. Failed AI calls are not charged.",
+          "default": false
+        },
+        "provider": {
+          "title": "Provider",
+          "type": "string",
+          "description": "Only OpenAI is supported in this version. You pay that provider directly.",
+          "enum": ["openai"],
+          "enumTitles": ["OpenAI"],
+          "default": "openai"
+        },
+        "model": {
+          "title": "Model",
+          "type": "string",
+          "description": "OpenAI model name. Default gpt-4.1-mini.",
+          "editor": "textfield",
+          "default": "gpt-4.1-mini"
+        },
+        "generateReport": {
+          "title": "Generate an opportunity brief",
+          "type": "boolean",
+          "description": "Writes OPPORTUNITY_REPORT to the key-value store. Charged as ai-opportunity-report only when the brief is saved.",
+          "default": false
+        }
+      }
+    },
+    "openaiApiKey": {
+      "title": "OpenAI API key",
+      "type": "string",
+      "description": "Required only when AI matching is on. Stored as an Apify secret. Never logged or saved on records. You pay OpenAI directly.",
+      "editor": "textfield",
+      "isSecret": true
     }
-  },
-  "required": ["mode"]
+  }
 }

@@ -42,9 +42,9 @@ Alternatively, the first `apify push` from `apps/actor` will create or update th
 From `apps/actor`. Apify only allows a Docker context inside the Actor folder, so the shared package is copied in first:
 
 ```bash
-pnpm --filter @scouvela/shared build
+npm run build -w @scouvela/shared
 cd apps/actor
-pnpm bundle-shared
+npm run bundle-shared
 apify push
 ```
 
@@ -52,7 +52,7 @@ Or in one step:
 
 ```bash
 cd apps/actor
-pnpm apify:push
+npm run apify:push
 ```
 
 `dockerContextDir` is relative to `.actor/actor.json`, so it must be `..` (the Actor folder). `../..` is the monorepo root and Apify rejects that on `apify push`.
@@ -112,4 +112,30 @@ From the CLI, copy the Dataset ID from the run and use the Apify API or Console 
 - Never commit `.env`, `auth.json`, or a token in `SOURCES.md` / README samples.
 - Rotate the token if it is ever pasted into chat, a screenshot, or git.
 
-Review `SOURCES.md` before any live crawl. Live source access is off until you set the approval environment variables documented there.
+Reviewed source approval is now the default in `.actor/actor.json` so Store users can run without extra env setup. Local CLI runs still need `SCOUVELA_FUNDING_SOURCE_APPROVED` and `SCOUVELA_VENDOR_SOURCE_APPROVED` if you are not using those Actor defaults. Re-read `SOURCES.md` before you change sources.
+
+## 11. Monetization (pay per event)
+
+Store users should see three events. Configure them in Console: Actor → **Publishing → Monetization → Pay per event**.
+
+| Event name | Title | Charged by | Suggested price |
+| --- | --- | --- | --- |
+| `apify-default-dataset-item` | Dataset item | Platform, each saved opportunity | $0.005 |
+| `ai-search-plan` | AI search plan | Code, only when a plan validates | $0.010 |
+| `ai-enriched-result` | AI enriched result | Code, only when a summary validates | $0.010 |
+| `ai-opportunity-report` | AI opportunity brief | Code, only when the brief is saved | $0.050 |
+
+Include platform usage in the event prices so users are not surprised by a second compute bill. Set **Primary event** to `apify-default-dataset-item`.
+
+Do not add proxy or third-party API-key fields. Optional AI uses Apify’s OpenRouter proxy (`APIFY_TOKEN` already injected on platform runs).
+
+## 12. Publish to Apify Store
+
+1. Push this version (`0.3`) with `npm run apify:push`.
+2. Open **Publishing**. Title and description should match `.actor/actor.json`.
+3. Categories that fit: Lead generation, Other.
+4. The Store README is `.actor/README.md`. Confirm it renders after the build.
+5. Add a screenshot of a successful vendor Dataset (JSON/table) and one funding input form.
+6. Fill **About** with the closing paragraph from `.actor/README.md`.
+7. Run the Store demo from Console with `examples/vendors-ikeja.json` (Finelib is the reliable live path) and link that run as the demo.
+8. Submit or publish when the README, input form, Dataset views, and PPE events all match.

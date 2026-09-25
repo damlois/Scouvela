@@ -1,6 +1,8 @@
-# Scouvela Discovery Actor
+# Scouvela African SME Opportunities Actor
 
-Apify Actor that collects publicly listed Nigerian SME funding products and local vendors, normalises them, deduplicates them, and pushes valid records to the default Dataset.
+Apify Actor that discovers publicly listed African SME opportunities — grants, loans, accelerators, training programmes and competitions — then normalises, deduplicates and saves source-linked records.
+
+The Store listing lives in [`.actor/README.md`](./.actor/README.md). Source review is in [SOURCES.md](./SOURCES.md). Pricing is in [docs/MONETIZATION.md](./docs/MONETIZATION.md).
 
 Scouvela aggregates publicly available information and preserves the original source. Users should verify current funding terms and vendor information at the source before acting.
 
@@ -52,25 +54,26 @@ Cheerio is the default. Playwright remains an unused fallback in `src/crawlers/p
 | `mode` | yes | `funding` or `vendors` |
 | `query` | vendors: query **or** `serviceCategory` | Trimmed. Never interpolated into a URL path |
 | `serviceCategory` | vendors: query **or** this field | Allowlisted values such as tailoring, bakery, shoemaker, printing, packaging |
-| `businessCategory` | no | Reserved for later funding filters |
+| `businessCategory` | no | Accepted but unused in this version |
 | `state` | no | Vendor allowlist currently supports Lagos only |
 | `locality` | no | Applied as a text filter (Ikeja, Yaba) |
 | `fundingType` | no | Filters records that state an explicit type |
 | `maxResults` | no | Default 5, minimum 1, maximum 20 |
+| `enrichWithLlm` | no | Default `false`. Adds `aiSummary` from already extracted fields and charges the `ai-enrichment` PPE event |
 
 ## Output schemas
 
 Shared Zod contracts in `packages/shared`:
 
-- Funding: `kind: "funding"` plus title, provider, fundingType, optional amount/eligibility/deadline/location/description, `status`, `sourceUrl`, `sourceName`, `discoveredAt`
-- Vendor: `kind: "vendor"` plus name, category, state, optional locality/address/phone/website/rating/description, `verificationStatus: "source-listed"`, `sourceUrl`, `sourceName`, `discoveredAt`
+- Funding: `kind: "funding"` plus title, provider, optional fundingType, optional amount/eligibility/deadline/location/description, `status`, `sourceUrl`, `sourceName`, `discoveredAt`, optional `aiSummary`
+- Vendor: `kind: "vendor"` plus name, category, state, optional locality/address/phone/website/rating/description, `verificationStatus: "source-listed"`, `sourceUrl`, `sourceName`, `discoveredAt`, optional `aiSummary`
 
 Uncertain funding status is `unverified`. Vendors are never labelled verified.
 
 ## Local run
 
 ```bash
-pnpm --filter @scouvela/shared build
+npm run build -w @scouvela/shared
 cd apps/actor
 apify run
 ```
@@ -87,7 +90,7 @@ Without the approval environment variables, a live run exits with `SourceNotAppr
 ## Tests
 
 ```bash
-pnpm --filter @scouvela/actor test
+npm test -w @scouvela/actor
 ```
 
 Fixture HTML is minimal class-compatible markup. Whole web pages are not copied into the repo.
@@ -101,7 +104,7 @@ Disabled by default:
 $env:RUN_LIVE_CRAWL_TESTS = 'true'
 $env:SCOUVELA_FUNDING_SOURCE_APPROVED = 'true'
 $env:SCOUVELA_VENDOR_SOURCE_APPROVED = 'true'
-pnpm --filter @scouvela/actor test
+npm test -w @scouvela/actor
 ```
 
 Live tests use `maxResults: 3`.
@@ -113,7 +116,7 @@ Follow [APIFY_SETUP.md](./APIFY_SETUP.md). Short version:
 ```bash
 cd apps/actor
 apify login
-pnpm apify:push
+npm run apify:push
 apify call --input-file examples/funding.json
 ```
 
@@ -128,13 +131,14 @@ Open the run → **Dataset**. Export JSON or CSV from Console. Locally, Crawlee 
 - BOI products often omit deadlines, so status is frequently `unverified` unless the page says applications are open or states a date.
 - Funding type is recorded only when the page clearly states loan, grant, accelerator or support programme. Listings without that language are still saved; the type is left blank rather than guessed.
 - Pagination is capped at two index pages. Detail pages are visited from the full index, not only the first `maxResults` cards.
+- Optional AI summaries require `APIFY_TOKEN` on platform (OpenRouter proxy) or `OPENROUTER_API_KEY` locally. The Actor still saves structured rows if enrichment is skipped.
 
 ## If source HTML changes
 
 1. Re-fetch a single index and detail page manually.
 2. Update selectors only inside the relevant adapter.
 3. Replace the tiny fixtures in `test/fixtures/`.
-4. Run `pnpm --filter @scouvela/actor test`.
+4. Run `npm test -w @scouvela/actor`.
 5. If product links disappear entirely, the Actor should throw `SourceStructureError` rather than invent records.
 
 ## Sample inputs
@@ -147,7 +151,7 @@ Open the run → **Dataset**. Export JSON or CSV from Console. Locally, Crawlee 
 }
 ```
 
-`examples/funding-loans.json` adds `"fundingType": "loan"`. Many BOI products are titled “Fund” or “Programme” and never use the word loan, so that filter skips them.
+`examples/funding-loans.json` adds `"fundingType": "loan"`. Many BOI products are titled “Fund” or “Programme” and never use the word loan, so that filter skips them. `examples/funding-llm.json` turns on optional AI summaries.
 
 ```json
 {

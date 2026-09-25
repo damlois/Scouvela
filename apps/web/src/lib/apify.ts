@@ -29,26 +29,21 @@ function cappedMaxResults(value: number): number {
 
 function toActorInput(request: ParsedSearchRequest): ActorInput {
   const maxResults = cappedMaxResults(request.maxResults);
-
-  if (request.mode === 'funding') {
-    return {
-      mode: 'funding',
-      query: request.query,
-      businessCategory: request.businessCategory,
-      state: request.state,
-      locality: request.locality,
-      fundingType: request.fundingType,
-      maxResults,
-    };
-  }
+  const fundingType =
+    request.mode === 'funding' && request.fundingType
+      ? request.fundingType === 'support-programme'
+        ? 'business-support'
+        : request.fundingType
+      : undefined;
 
   return {
-    mode: 'vendors',
-    query: request.query,
-    serviceCategory: request.serviceCategory,
-    state: request.state,
-    locality: request.locality,
+    query: request.mode === 'vendors' ? request.serviceCategory ?? request.query : request.query,
+    countries: ['Nigeria'],
+    opportunityTypes: fundingType ? [fundingType] : request.mode === 'funding' ? ['loan', 'grant', 'funding'] : undefined,
+    regions: request.locality ? [request.locality] : undefined,
     maxResults,
+    includeExpired: true,
+    ai: { enabled: false },
   };
 }
 

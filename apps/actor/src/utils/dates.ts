@@ -1,4 +1,4 @@
-import { CLOSING_SOON_DAYS } from '@scouvela/shared';
+import { CLOSING_SOON_DAYS, type OpportunityStatus } from '@scouvela/shared';
 import { emptyToUndefined } from './text.js';
 
 export type CalculatedFundingStatus = 'active' | 'closing-soon' | 'expired' | 'unverified';
@@ -94,6 +94,38 @@ export function calculateFundingStatus(
 
   if (applicationsOpen) {
     return 'active';
+  }
+
+  return 'unverified';
+}
+
+export function calculateOpportunityStatus(
+  deadline: string | undefined,
+  now: Date = new Date(),
+  options: { applicationsOpen?: boolean; ongoing?: boolean } = {},
+): OpportunityStatus {
+  const parsedDeadline = parseDeadline(deadline);
+
+  if (parsedDeadline) {
+    const remainingDays = utcDayDiff(parsedDeadline, now);
+
+    if (remainingDays < 0) {
+      return 'expired';
+    }
+
+    if (remainingDays <= CLOSING_SOON_DAYS) {
+      return 'closing-soon';
+    }
+
+    return 'active';
+  }
+
+  if (options.applicationsOpen) {
+    return 'active';
+  }
+
+  if (options.ongoing) {
+    return 'ongoing';
   }
 
   return 'unverified';

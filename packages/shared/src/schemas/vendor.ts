@@ -19,6 +19,7 @@ export const vendorSchema = z.object({
   sourceName: z.string().min(1).max(200),
   discoveredAt: z.string().datetime({ offset: true }),
   verificationStatus: vendorVerificationStatusSchema,
+  aiSummary: z.string().min(1).max(500).optional(),
 });
 
 export type VendorVerificationStatus = z.infer<typeof vendorVerificationStatusSchema>;

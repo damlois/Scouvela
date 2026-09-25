@@ -16,7 +16,7 @@ export const metadata: Metadata = {
     template: '%s · Scouvela',
   },
   description:
-    'Find SME funding if you run a business, or find local vendors in Nigeria whether you do or not.',
+    'Find publicly listed SME funding and local vendors in Nigeria, with the original source on every result.',
   icons: {
     icon: [
       { url: '/favicon.ico', sizes: '32x32' },

@@ -4,110 +4,67 @@
     "$schema": "http://json-schema.org/draft-07/schema#",
     "type": "object",
     "properties": {
-      "id": {
-        "type": "string",
-        "title": "ID"
-      },
-      "kind": {
-        "type": "string",
-        "title": "Kind"
-      },
-      "title": {
-        "type": ["string", "null"],
-        "title": "Title"
-      },
-      "name": {
-        "type": ["string", "null"],
-        "title": "Name"
-      },
-      "provider": {
-        "type": ["string", "null"],
-        "title": "Provider"
-      },
-      "fundingType": {
-        "type": ["string", "null"],
-        "title": "Funding type"
-      },
-      "category": {
-        "type": ["string", "null"],
-        "title": "Category"
-      },
-      "status": {
-        "type": ["string", "null"],
-        "title": "Status"
-      },
-      "verificationStatus": {
-        "type": ["string", "null"],
-        "title": "Verification status"
-      },
-      "state": {
-        "type": ["string", "null"],
-        "title": "State"
-      },
-      "locality": {
-        "type": ["string", "null"],
-        "title": "Locality"
-      },
-      "deadline": {
-        "type": ["string", "null"],
-        "title": "Deadline"
-      },
-      "sourceName": {
-        "type": "string",
-        "title": "Source name"
-      },
-      "sourceUrl": {
-        "type": "string",
-        "format": "uri",
-        "title": "Source URL"
-      },
-      "discoveredAt": {
-        "type": "string",
-        "format": "date-time",
-        "title": "Discovered at"
-      }
+      "id": { "type": "string", "title": "ID" },
+      "title": { "type": "string", "title": "Title" },
+      "provider": { "type": "string", "title": "Provider" },
+      "providerType": { "type": ["string", "null"], "title": "Provider type" },
+      "opportunityType": { "type": "string", "title": "Opportunity type" },
+      "description": { "type": "string", "title": "Description" },
+      "countries": { "type": "array", "title": "Countries", "items": { "type": "string" } },
+      "sectors": { "type": "array", "title": "Sectors", "items": { "type": "string" } },
+      "targetGroups": { "type": "array", "title": "Target groups", "items": { "type": "string" } },
+      "deadline": { "type": ["string", "null"], "title": "Deadline" },
+      "status": { "type": "string", "title": "Status" },
+      "confidence": { "type": "string", "title": "Confidence" },
+      "applicationUrl": { "type": ["string", "null"], "title": "Application URL" },
+      "sourceName": { "type": "string", "title": "Source name" },
+      "sourceUrl": { "type": "string", "format": "uri", "title": "Source URL" },
+      "scrapedAt": { "type": "string", "format": "date-time", "title": "Scraped at" }
     },
-    "required": ["id", "kind", "sourceName", "sourceUrl", "discoveredAt"],
+    "required": [
+      "id",
+      "title",
+      "provider",
+      "opportunityType",
+      "description",
+      "countries",
+      "sourceUrl",
+      "sourceName",
+      "status",
+      "scrapedAt"
+    ],
     "additionalProperties": true
   },
   "views": {
     "overview": {
-      "title": "Overview",
+      "title": "Opportunities",
       "transformation": {
         "fields": [
-          "kind",
           "title",
-          "name",
           "provider",
-          "fundingType",
-          "category",
+          "opportunityType",
+          "countries",
           "status",
-          "verificationStatus",
-          "state",
-          "locality",
           "deadline",
+          "confidence",
           "sourceName",
           "sourceUrl",
-          "discoveredAt"
+          "scrapedAt"
         ]
       },
       "display": {
         "component": "table",
         "properties": {
-          "kind": { "label": "Kind" },
           "title": { "label": "Title" },
-          "name": { "label": "Name" },
           "provider": { "label": "Provider" },
-          "fundingType": { "label": "Funding type" },
-          "category": { "label": "Category" },
+          "opportunityType": { "label": "Type" },
+          "countries": { "label": "Countries" },
           "status": { "label": "Status" },
-          "verificationStatus": { "label": "Verification" },
-          "state": { "label": "State" },
-          "locality": { "label": "Locality" },
           "deadline": { "label": "Deadline" },
+          "confidence": { "label": "Confidence" },
           "sourceName": { "label": "Source" },
           "sourceUrl": { "label": "Source URL" },
-          "discoveredAt": { "label": "Discovered" }
+          "scrapedAt": { "label": "Scraped" }
         }
       }
     }

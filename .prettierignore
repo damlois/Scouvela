@@ -2,7 +2,7 @@ node_modules
 dist
 .next
 coverage
-pnpm-lock.yaml
+package-lock.json
 storage
 apify_storage
 .vercel

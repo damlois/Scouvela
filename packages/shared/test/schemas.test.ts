@@ -5,6 +5,7 @@ import {
   fundingOpportunitySchema,
   searchRequestSchema,
   searchResponseSchema,
+  smeOpportunitySchema,
   vendorSchema,
 } from '../src/index.js';
 
@@ -99,20 +100,49 @@ describe('vendorSchema', () => {
   });
 });
 
+describe('smeOpportunitySchema', () => {
+  it('accepts a source-linked opportunity and keeps AI off by default', () => {
+    const result = smeOpportunitySchema.parse({
+      id: 'opp-1',
+      title: 'Women Enterprise Growth Programme',
+      provider: 'Example Foundation',
+      opportunityType: 'accelerator',
+      description: 'A growth programme for women-owned SMEs.',
+      countries: ['Nigeria', 'Ghana'],
+      sourceUrl: 'https://example.org/programme',
+      sourceName: 'Example Foundation',
+      status: 'active',
+      scrapedAt: discoveredAt,
+      confidence: 'high',
+    });
+
+    expect(result.ai).toBeNull();
+  });
+});
+
 describe('actorInputSchema', () => {
-  it('defaults maxResults when omitted', () => {
-    const result = actorInputSchema.parse({ mode: 'funding' });
-    expect(result.maxResults).toBe(5);
+  it('defaults countries, maxResults and AI off', () => {
+    const result = actorInputSchema.parse({});
+    expect(result.maxResults).toBe(20);
+    expect(result.countries).toEqual(['Nigeria', 'Ghana', 'Kenya']);
+    expect(result.ai.enabled).toBe(false);
+    expect(result.includeExpired).toBe(false);
   });
 
   it('rejects maxResults above the Actor hard limit', () => {
-    const result = actorInputSchema.safeParse({ mode: 'vendors', query: 'tailor', maxResults: 500 });
+    const result = actorInputSchema.safeParse({ maxResults: 500 });
     expect(result.success).toBe(false);
   });
 
-  it('requires a vendor category or query', () => {
-    const result = actorInputSchema.safeParse({ mode: 'vendors' });
-    expect(result.success).toBe(false);
+  it('requires a secret API key only when AI is enabled', () => {
+    const withoutKey = actorInputSchema.safeParse({ ai: { enabled: true } });
+    expect(withoutKey.success).toBe(false);
+
+    const withKey = actorInputSchema.parse({
+      ai: { enabled: true },
+      openaiApiKey: 'sk-test',
+    });
+    expect(withKey.ai.provider).toBe('openai');
   });
 });
 

@@ -1,14 +1,28 @@
 {
   "actorSpecification": 1,
-  "name": "scouvela-discovery",
-  "title": "Scouvela Discovery Actor",
-  "description": "Collects publicly listed Nigerian SME funding opportunities and local service providers for the Scouvela platform.",
-  "version": "0.1",
+  "name": "scouvela-african-sme-opportunities",
+  "title": "African SME Opportunities Scraper & AI Matcher",
+  "description": "Discover grants, loans, contracts, accelerators, training programmes and other growth opportunities for African SMEs from public sources.",
+  "version": "0.3",
   "buildTag": "latest",
   "dockerfile": "./Dockerfile",
   "dockerContextDir": "..",
+  "readme": "./README.md",
   "input": "./input_schema.json",
   "storages": {
     "dataset": "./dataset_schema.json"
+  },
+  "minMemoryMbytes": 512,
+  "maxMemoryMbytes": 2048,
+  "defaultRunOptions": {
+    "build": "latest",
+    "memoryMbytes": 1024,
+    "timeoutSecs": 360
+  },
+  "environmentVariables": {
+    "SCOUVELA_BOI_SOURCE_APPROVED": "true",
+    "SCOUVELA_TEF_SOURCE_APPROVED": "true",
+    "SCOUVELA_GEA_SOURCE_APPROVED": "true",
+    "SCOUVELA_KCIC_SOURCE_APPROVED": "true"
   }
 }

@@ -1,13 +1,28 @@
 export {
   ACTOR_DEFAULT_MAX_RESULTS,
   ACTOR_HARD_MAX_RESULTS,
+  AI_PROVIDERS,
+  BUSINESS_STAGES,
   CLOSING_SOON_DAYS,
   DEFAULT_MAX_RESULTS,
+  DEFAULT_OPENAI_MODEL,
   HARD_MAX_RESULTS,
+  MVP_COUNTRIES,
+  OPPORTUNITY_CONFIDENCE,
+  OPPORTUNITY_STATUSES,
+  OPPORTUNITY_TYPES,
+  PROVIDER_TYPES,
+  SEARCH_COUNTRIES,
+  TARGET_GROUPS,
 } from './constants.js';
 export {
+  actorAiInputSchema,
   actorInputSchema,
+  aiProviderSchema,
+  countrySchema,
+  type ActorAiInput,
   type ActorInput,
+  type ParsedActorAiInput,
   type ParsedActorInput,
 } from './schemas/actor-input.js';
 export { apiErrorSchema, type ApiError, type ApiErrorCode } from './schemas/error.js';
@@ -42,3 +57,23 @@ export {
   type Vendor,
   type VendorVerificationStatus,
 } from './schemas/vendor.js';
+export {
+  businessStageSchema,
+  fundingAmountSchema,
+  opportunityAiSchema,
+  opportunityConfidenceSchema,
+  opportunityStatusSchema,
+  opportunityTypeSchema,
+  providerTypeSchema,
+  smeOpportunitySchema,
+  targetGroupSchema,
+  type BusinessStage,
+  type FundingAmount,
+  type OpportunityAi,
+  type OpportunityConfidence,
+  type OpportunityStatus,
+  type OpportunityType,
+  type ProviderType,
+  type SmeOpportunity,
+  type TargetGroup,
+} from './schemas/opportunity.js';

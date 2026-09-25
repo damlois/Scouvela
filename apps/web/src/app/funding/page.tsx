@@ -1,6 +1,5 @@
 import type { Metadata } from 'next';
 import type { FundingType } from '@scouvela/shared';
-import { AudienceFundingNote } from '@/components/audience/AudienceFundingNote';
 import { FundingSearchView } from '@/components/search/FundingSearchView';
 import type { FundingFilters, FundingSort } from '@/lib/search';
 
@@ -48,7 +47,6 @@ export default async function FundingPage({
           Search loans, grants, accelerators and support programmes from public listings. Confirm
           every detail at the original source before you apply.
         </p>
-        <AudienceFundingNote />
       </header>
       <FundingSearchView
         previewError={previewError}

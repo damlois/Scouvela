@@ -29,12 +29,19 @@ export function transformFundingRecord(
     kind: 'funding',
     title,
     provider,
-    fundingType: record.fundingType,
-    amount: toOptional(record.amount),
+    fundingType:
+      record.opportunityType === 'loan' ||
+      record.opportunityType === 'grant' ||
+      record.opportunityType === 'accelerator'
+        ? record.opportunityType
+        : record.opportunityType === 'business-support'
+          ? 'support-programme'
+          : undefined,
+    amount: toOptional(record.fundingAmountText),
     eligibility,
     deadline,
     status: calculateFundingStatus(deadline, new Date(), record.applicationsOpen === true),
-    location: toOptional(record.location),
+    location: record.countries?.[0],
     description: toOptional(record.description),
     sourceUrl: canonicalizeUrl(sourceUrl),
     sourceName,

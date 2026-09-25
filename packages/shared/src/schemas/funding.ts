@@ -19,6 +19,7 @@ export const fundingOpportunitySchema = z.object({
   sourceUrl: z.string().url(),
   sourceName: z.string().min(1).max(200),
   discoveredAt: z.string().datetime({ offset: true }),
+  aiSummary: z.string().min(1).max(500).optional(),
 });
 
 export type FundingType = z.infer<typeof fundingTypeSchema>;

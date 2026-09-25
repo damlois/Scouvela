@@ -1,11 +1,10 @@
 # Scouvela
 
-Scouvela is an Apify-powered discovery platform for people in Nigeria. It helps users:
+Scouvela is an Apify Actor that discovers grants, loans, accelerators, training programmes and other public growth opportunities for African SMEs. Standard extraction needs no API key. Optional AI matching uses your own OpenAI key.
 
-1. Find current SME funding opportunities, including loans, grants, accelerators and support programmes — aimed at business owners.
-2. Find local service providers such as tailors, bakers, shoemakers, printers and packaging vendors by location — for personal use or for a business.
+MVP sources cover Nigeria, Ghana, Kenya, and Africa-wide programmes. This is not full continental coverage.
 
-This repository is a pnpm monorepo. The web app, Apify Actor and shared contracts live in one Git repository so developers can work in parallel without duplicating types.
+This repository is an npm workspaces monorepo. The Apify Actor is the product. Shared Zod contracts keep the optional web app aligned with Actor input and output.
 
 ## Architecture overview
 
@@ -33,7 +32,7 @@ scouvela/
 │   └── pull_request_template.md
 ├── .env.example
 ├── package.json
-├── pnpm-workspace.yaml
+├── package-lock.json
 ├── README.md
 └── tsconfig.base.json
 ```
@@ -41,7 +40,7 @@ scouvela/
 ## Prerequisites
 
 - Node.js 20 or newer
-- [pnpm](https://pnpm.io/) 9, via Corepack: `corepack enable && corepack prepare pnpm@9.15.9 --activate`
+- npm (bundled with Node.js)
 - An Apify account only when you are ready to run or deploy the Actor
 - A Vercel account only when you are ready to deploy the web app
 
@@ -50,8 +49,8 @@ scouvela/
 From the repository root:
 
 ```bash
-pnpm install
-pnpm --filter @scouvela/shared build
+npm install
+npm run build -w @scouvela/shared
 ```
 
 The shared package compiles to `packages/shared/dist`. Rebuild it after changing schemas.
@@ -89,14 +88,14 @@ Rules:
 ## Local development commands
 
 ```bash
-pnpm install
-pnpm dev          # shared build, then Next.js at http://localhost:3000
-pnpm dev:web      # frontend only
-pnpm dev:actor    # Actor entrypoint (needs Apify local storage / `apify run`)
-pnpm build
-pnpm lint
-pnpm typecheck
-pnpm test
+npm install
+npm run dev          # shared build, then Next.js at http://localhost:3000
+npm run dev:web      # frontend only
+npm run dev:actor    # Actor entrypoint (needs Apify local storage / `apify run`)
+npm run build
+npm run lint
+npm run typecheck
+npm test
 ```
 
 Useful pages:
@@ -145,7 +144,7 @@ From `apps/actor`:
 
 ```bash
 cd apps/actor
-pnpm --filter @scouvela/shared build
+npm run build -w @scouvela/shared
 apify run
 ```
 
@@ -164,7 +163,7 @@ The Actor crawls approved public sources only after you review `apps/actor/SOURC
 You can also start the compiled TypeScript entrypoint after building shared:
 
 ```bash
-pnpm dev:actor
+npm run dev:actor
 ```
 
 That command expects Apify local storage. Prefer `apify run` during Actor development.
@@ -175,8 +174,8 @@ That command expects Apify local storage. Prefer `apify run` during Actor develo
 2. Import the project in Vercel.
 3. Set the Root Directory to the repository root, or configure Vercel to build the `apps/web` workspace.
 4. Use these build settings if you configure them manually:
-   - Install command: `pnpm install`
-   - Build command: `pnpm --filter @scouvela/shared build && pnpm --filter @scouvela/web build`
+   - Install command: `npm install`
+   - Build command: `npm run build -w @scouvela/shared && npm run build -w @scouvela/web`
    - Output: Next.js default for `apps/web`
 5. Add server environment variables in the Vercel project settings:
    - `USE_MOCK_DATA`
@@ -195,10 +194,10 @@ If Vercel asks for a project directory, `apps/web` is the Next.js app. It still 
 ```bash
 cd apps/actor
 apify login
-pnpm apify:push
+npm run apify:push
 ```
 
-`pnpm apify:push` copies `packages/shared` into the Actor folder, then uploads. Apify does not allow a Docker context outside `apps/actor`.
+`npm run apify:push` copies `packages/shared` into the Actor folder, then uploads. Apify does not allow a Docker context outside `apps/actor`.
 
 3. Copy the deployed Actor ID into `APIFY_ACTOR_ID`.
 4. Store `APIFY_TOKEN` only in server or Apify secret settings.

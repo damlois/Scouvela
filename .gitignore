@@ -1,6 +1,5 @@
 # Dependencies
 node_modules
-.pnpm-store
 
 # Environment and secrets
 .env
@@ -24,9 +23,6 @@ coverage
 # Logs
 *.log
 npm-debug.log*
-pnpm-debug.log*
-yarn-debug.log*
-yarn-error.log*
 
 # OS and editors
 .DS_Store

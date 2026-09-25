@@ -59,7 +59,7 @@ writeFileSync(
 );
 
 const actorPackage = JSON.parse(readFileSync(join(actorRoot, 'package.json'), 'utf8'));
-if (actorPackage.dependencies?.['@scouvela/shared'] !== 'workspace:*') {
+if (actorPackage.dependencies?.['@scouvela/shared'] !== '*') {
   throw new Error('Expected @scouvela/shared to remain a workspace dependency for local development.');
 }
 

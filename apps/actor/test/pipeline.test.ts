@@ -2,19 +2,21 @@ import { readFileSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { describe, expect, it } from 'vitest';
-import { actorInputSchema } from '@scouvela/shared';
+import { actorInputSchema, type ParsedActorInput } from '@scouvela/shared';
 import { inferFundingType, parseBoiDetailHtml, parseBoiIndexHtml } from '../src/sources/funding/boi-funding-source.js';
+import { parseTefDetailHtml } from '../src/sources/tef-africa.js';
+import { parseGeaDetailHtml } from '../src/sources/gea-ghana.js';
+import { parseKcicDetailHtml } from '../src/sources/kcic-kenya.js';
 import { parseFinelibDetailHtml, parseFinelibIndexHtml } from '../src/sources/vendors/finelib-vendor-source.js';
-import { calculateFundingStatus, normalizeDeadline, parseDeadline } from '../src/utils/dates.js';
+import { calculateFundingStatus, calculateOpportunityStatus, normalizeDeadline, parseDeadline } from '../src/utils/dates.js';
 import { toAbsoluteUrl } from '../src/utils/urls.js';
 import { normalizeWhitespace } from '../src/utils/text.js';
 import { deterministicId } from '../src/utils/ids.js';
-import { transformFundingRecord } from '../src/transformers/funding-transformer.js';
 import { transformVendorRecord } from '../src/transformers/vendor-transformer.js';
+import { opportunityDedupeKey, transformOpportunity } from '../src/transformers/opportunity-transformer.js';
 import { deduplicateByKey, fundingDedupeKey, vendorDedupeKey } from '../src/utils/deduplicate.js';
-import { finaliseFundingRecords, finaliseVendorRecords } from '../src/pipeline.js';
+import { finaliseOpportunities } from '../src/pipeline.js';
 import { createRunStats } from '../src/utils/stats.js';
-import type { ParsedActorInput } from '@scouvela/shared';
 
 const fixturesDir = join(dirname(fileURLToPath(import.meta.url)), 'fixtures');
 
@@ -22,37 +24,29 @@ function readFixture(name: string): string {
   return readFileSync(join(fixturesDir, name), 'utf8');
 }
 
-const fundingInput: ParsedActorInput = {
-  mode: 'funding',
+const fundingInput: ParsedActorInput = actorInputSchema.parse({
   query: 'SME',
+  countries: ['Nigeria'],
   maxResults: 5,
-};
+  includeExpired: true,
+});
 
-const vendorInput: ParsedActorInput = {
-  mode: 'vendors',
-  serviceCategory: 'tailoring',
-  state: 'Lagos',
-  locality: 'Ikeja',
+const vendorInput: ParsedActorInput = actorInputSchema.parse({
+  query: 'tailoring',
+  countries: ['Nigeria'],
+  regions: ['Ikeja'],
   maxResults: 5,
-};
+});
 
 describe('actor input validation', () => {
-  it('defaults maxResults to 5 and trims strings', () => {
-    const parsed = actorInputSchema.parse({
-      mode: 'funding',
-      query: '  SME  ',
-    });
-    expect(parsed.maxResults).toBe(5);
+  it('defaults maxResults to 20 and trims strings', () => {
+    const parsed = actorInputSchema.parse({ query: '  SME  ' });
+    expect(parsed.maxResults).toBe(20);
     expect(parsed.query).toBe('SME');
   });
 
-  it('rejects vendor mode without a category or query', () => {
-    const parsed = actorInputSchema.safeParse({ mode: 'vendors' });
-    expect(parsed.success).toBe(false);
-  });
-
-  it('rejects maxResults above 20', () => {
-    const parsed = actorInputSchema.safeParse({ mode: 'funding', maxResults: 21 });
+  it('rejects maxResults above 50', () => {
+    const parsed = actorInputSchema.safeParse({ maxResults: 51 });
     expect(parsed.success).toBe(false);
   });
 });
@@ -75,7 +69,7 @@ describe('funding index parsing', () => {
     const parsed = parseBoiIndexHtml(
       readFixture('boi-index.html'),
       'https://www.boi.ng/product-category/smes/',
-      { ...fundingInput, fundingType: 'loan' },
+      { ...fundingInput, opportunityTypes: ['loan'] },
     );
     expect(parsed.detailUrls).toEqual(['https://www.boi.ng/product/sme-working-capital-loan/']);
   });
@@ -90,8 +84,8 @@ describe('funding detail parsing', () => {
     );
     expect(record?.title).toBe('SME Working Capital Loan');
     expect(record?.provider).toBe('Bank of Industry');
-    expect(record?.fundingType).toBe('loan');
-    expect(record?.amount).toContain('₦5 million');
+    expect(record?.opportunityType).toBe('loan');
+    expect(record?.fundingAmountText).toContain('₦5 million');
     expect(record?.deadline).toBeUndefined();
     expect(record?.applicationsOpen).toBe(true);
     expect(record?.sourceUrl).toBe('https://www.boi.ng/product/sme-working-capital-loan/');
@@ -99,16 +93,16 @@ describe('funding detail parsing', () => {
 
   it('classifies a matching fund from stated page language', () => {
     expect(inferFundingType('These are collaborative funding schemes between BOI and other partner institutions')).toBe(
-      'support-programme',
+      'business-support',
     );
-    expect(inferFundingType('State Matching Fund')).toBe('support-programme');
+    expect(inferFundingType('State Matching Fund')).toBe('business-support');
   });
 
   it('skips a loan page when the input asks for a grant', () => {
     const record = parseBoiDetailHtml(
       readFixture('boi-detail.html'),
       'https://www.boi.ng/product/sme-working-capital-loan/',
-      { ...fundingInput, fundingType: 'grant' },
+      { ...fundingInput, opportunityTypes: ['grant'] },
     );
     expect(record).toBeNull();
   });
@@ -129,9 +123,44 @@ describe('funding detail parsing', () => {
       fundingInput,
     );
     expect(record?.deadline).toBe('1 January 2020');
-    const transformed = transformFundingRecord(record ?? {});
+    const transformed = transformOpportunity(record ?? {});
     expect(transformed?.status).toBe('expired');
     expect(transformed?.deadline).toBe('2020-01-01');
+  });
+});
+
+describe('programme page parsing', () => {
+  it('reads the TEF public programme page', () => {
+    const record = parseTefDetailHtml(
+      readFixture('tef-programme.html'),
+      'https://www.tonyelumelufoundation.org/tef-entrepreneurship-programme',
+      actorInputSchema.parse({ countries: ['Nigeria'], includeExpired: true }),
+    );
+    expect(record?.provider).toBe('Tony Elumelu Foundation');
+    expect(record?.opportunityType).toBe('accelerator');
+    expect(record?.countries).toContain('Africa-wide');
+    expect(record?.applicationUrl).toContain('tefconnect.com');
+  });
+
+  it('reads a GEA programme page', () => {
+    const record = parseGeaDetailHtml(
+      readFixture('gea-d4j.html'),
+      'https://gea.gov.gh/d4j/',
+      actorInputSchema.parse({ countries: ['Ghana'] }),
+    );
+    expect(record?.provider).toBe('Ghana Enterprises Agency');
+    expect(record?.countries).toEqual(['Ghana']);
+    expect(record?.targetGroups).toContain('disability-inclusive');
+  });
+
+  it('reads a KCIC competition page and keeps the stated deadline', () => {
+    const record = parseKcicDetailHtml(
+      readFixture('kcic-cleantech.html'),
+      'https://www.kenyacic.org/programmes/cleantech',
+      actorInputSchema.parse({ countries: ['Kenya'], includeExpired: true }),
+    );
+    expect(record?.opportunityType).toBe('competition');
+    expect(record?.deadline).toMatch(/August 2026/i);
   });
 });
 
@@ -181,10 +210,10 @@ describe('normalisation helpers', () => {
   });
 
   it('creates deterministic IDs from stable properties', () => {
-    const first = deterministicId('funding', ['Bank of Industry', 'SME Loan', 'https://www.boi.ng/product/a']);
-    const second = deterministicId('funding', ['Bank of Industry', 'SME Loan', 'https://www.boi.ng/product/a']);
+    const first = deterministicId('opportunity', ['Bank of Industry', 'SME Loan', 'https://www.boi.ng/product/a']);
+    const second = deterministicId('opportunity', ['Bank of Industry', 'SME Loan', 'https://www.boi.ng/product/a']);
     expect(first).toBe(second);
-    expect(first.startsWith('funding-')).toBe(true);
+    expect(first.startsWith('opportunity-')).toBe(true);
   });
 });
 
@@ -207,6 +236,7 @@ describe('funding status', () => {
   it('marks missing dates as unverified unless the page says applications are open', () => {
     expect(calculateFundingStatus(undefined, now)).toBe('unverified');
     expect(calculateFundingStatus(undefined, now, true)).toBe('active');
+    expect(calculateOpportunityStatus(undefined, now, { ongoing: true })).toBe('ongoing');
   });
 });
 
@@ -254,47 +284,60 @@ describe('deduplication and merging', () => {
 });
 
 describe('pipeline validation', () => {
-  it('limits valid funding records to maxResults', () => {
-    const stats = createRunStats('funding', 'Bank of Industry');
+  it('limits valid opportunities to maxResults', () => {
+    const stats = createRunStats();
     const records = Array.from({ length: 8 }, (_, index) => ({
       title: `Loan ${index}`,
       provider: 'Bank of Industry',
-      fundingType: 'loan' as const,
+      opportunityType: 'loan' as const,
+      description: 'Working-capital finance for registered Nigerian SMEs.',
+      countries: ['Nigeria'],
       sourceUrl: `https://www.boi.ng/product/loan-${index}/`,
       sourceName: 'Bank of Industry',
       applicationsOpen: true,
     }));
-    const saved = finaliseFundingRecords(records, { ...fundingInput, maxResults: 5 }, '2026-09-21T08:00:00.000Z', stats);
+    const saved = finaliseOpportunities(records, { ...fundingInput, maxResults: 5 }, '2026-09-21T08:00:00.000Z', stats);
     expect(saved).toHaveLength(5);
     expect(saved.every((item) => item.sourceUrl.startsWith('https://www.boi.ng/'))).toBe(true);
+    expect(saved.every((item) => item.ai === null)).toBe(true);
   });
 
   it('skips invalid records and continues', () => {
-    const stats = createRunStats('vendors', 'Finelib.com');
-    const saved = finaliseVendorRecords(
+    const stats = createRunStats();
+    const saved = finaliseOpportunities(
       [
-        { name: 'Valid Studio', category: 'tailoring', state: 'Lagos', locality: 'Ikeja', sourceUrl: 'https://www.finelib.com/listing/valid/1/', sourceName: 'Finelib.com' },
-        { name: 'Missing URL', category: 'tailoring', state: 'Lagos', sourceName: 'Finelib.com' },
+        {
+          title: 'Valid Programme',
+          provider: 'Ghana Enterprises Agency',
+          opportunityType: 'training',
+          description: 'Digital skills training for Ghanaian SMEs.',
+          countries: ['Ghana'],
+          sourceUrl: 'https://gea.gov.gh/d4j/',
+          sourceName: 'Ghana Enterprises Agency',
+        },
+        { title: 'Missing URL', provider: 'Unknown', description: 'No source.' },
       ],
-      vendorInput,
+      actorInputSchema.parse({ countries: ['Ghana'], maxResults: 5 }),
       '2026-09-21T08:00:00.000Z',
       stats,
     );
     expect(saved).toHaveLength(1);
-    expect(saved[0]?.kind).toBe('vendor');
-    expect(saved[0]?.verificationStatus).toBe('source-listed');
+    expect(saved[0]?.opportunityType).toBe('training');
   });
 
-  it('saves a public listing without inventing a funding type', () => {
-    const transformed = transformFundingRecord({
+  it('saves a public listing without inventing a funding amount', () => {
+    const transformed = transformOpportunity({
       title: 'Unspecified Window',
       provider: 'Bank of Industry',
+      description: 'A public SME product page without a stated amount.',
+      countries: ['Nigeria'],
       sourceUrl: 'https://www.boi.ng/product/unspecified-window/',
       sourceName: 'Bank of Industry',
     });
     expect(transformed?.title).toBe('Unspecified Window');
-    expect(transformed?.fundingType).toBeUndefined();
-    expect(transformed?.sourceUrl).toBe('https://www.boi.ng/product/unspecified-window');
+    expect(transformed?.fundingAmount).toBeUndefined();
+    expect(transformed?.opportunityType).toBe('other');
+    expect(opportunityDedupeKey(transformed!)).toContain('unspecified window');
   });
 
   it('labels vendors as source-listed', () => {
