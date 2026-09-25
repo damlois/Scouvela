@@ -72,24 +72,50 @@ Optional AI:
 
 The API key is an Apify secret. It is never written to the Dataset, logs, or Actor output.
 
-## Pricing
-
-Pay per event. You pay for usable results, not failed pages.
-
-| Event | When it fires | Suggested price |
-| --- | --- | --- |
-| `apify-default-dataset-item` | Each valid opportunity saved | $0.005 |
-| `ai-search-plan` | One successful AI search plan | $0.010 |
-| `ai-enriched-result` | One successfully enriched result | $0.010 |
-| `ai-opportunity-report` | One saved opportunity brief | $0.050 |
-
-Twenty ordinary results cost about $0.10. AI is extra and only charged when the model response validates. Your OpenAI bill is separate.
-
 ## Output
 
 Every row includes title, provider, opportunity type, description, countries, status, source URL, source name and scrape time. Optional fields include eligibility, deadline, benefits, application URL and an `ai` object with a labelled summary and match reasons.
 
 Confidence is extraction completeness, not an endorsement.
+
+## Pricing
+
+Scouvela uses transparent pay-per-event pricing. You pay only when the Actor successfully produces a chargeable result or optional AI output.
+
+| Event | Price | When you are charged |
+|---|---:|---|
+| Opportunity result | **$0.01 per result** | When a valid, normalized opportunity is saved to the default Dataset |
+| AI search plan | **$0.01 per plan** | When Scouvela successfully converts a natural-language request into a validated search plan |
+| AI-enriched opportunity | **$0.02 per result** | When one opportunity is successfully summarized, classified and matched using AI |
+| AI opportunity report | **$0.05 per report** | When a complete AI opportunity report is successfully generated and saved |
+
+### Example costs
+
+A standard run that returns 10 opportunities costs:
+
+```text
+10 opportunity results × $0.01 = $0.10
+```
+
+A run with 10 opportunities and every optional AI feature enabled costs:
+
+```text
+10 opportunity results        $0.10
+1 AI search plan              $0.01
+10 AI-enriched results        $0.20
+1 AI opportunity report       $0.05
+Total                         $0.36
+```
+
+The current maximum is 50 opportunity results per run. A standard 50-result run costs up to **$0.50** in Scouvela event charges.
+
+### Optional AI costs
+
+AI features are optional. Standard opportunity extraction works without an AI key.
+
+When AI is enabled, you provide your own supported LLM API key through a secret Actor input. Your AI provider bills you separately for model usage. Scouvela never writes your API key to logs, Dataset records or reports.
+
+You are not charged a successful-result event for duplicate, rejected or invalid records that are not saved to the Dataset. Failed AI operations are not charged as successful AI events.
 
 ## Limits
 
