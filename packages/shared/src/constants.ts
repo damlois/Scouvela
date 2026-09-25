@@ -76,4 +76,24 @@ export const SEARCH_COUNTRIES = ['Africa-wide', ...MVP_COUNTRIES] as const;
 
 export const AI_PROVIDERS = ['openai'] as const;
 
+export const SOURCE_TYPES = ['curated-websites', 'custom-webpages', 'instagram'] as const;
+
+export const SOURCE_PLATFORMS = [
+  'website',
+  'instagram',
+  'tiktok',
+  'facebook',
+  'linkedin',
+  'other',
+] as const;
+
+export const CONTENT_TYPES = ['webpage', 'social-post', 'social-reel', 'social-profile'] as const;
+
+export const VERIFICATION_STATUSES = [
+  'verified-application-page',
+  'official-source',
+  'unverified',
+  'incomplete',
+] as const;
+
 export const DEFAULT_OPENAI_MODEL = 'gpt-4.1-mini';

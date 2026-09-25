@@ -18,7 +18,8 @@ export function searchPlanPrompt(input: ParsedActorInput): string {
 export function enrichmentPrompt(record: SmeOpportunity, input: ParsedActorInput): string {
   return [
     'Summarise and match this opportunity using only the supplied facts.',
-    'Never invent eligibility, deadlines, amounts, or countries.',
+    'Never invent eligibility, deadlines, amounts, application links, countries, or an official-source label.',
+    'Do not change scraped facts. Put interpretation only in this JSON.',
     'If a fact is missing, list it in missingInformation.',
     'Reply with JSON: {"summary":"...","matchScore":0,"matchLevel":"weak","matchReasons":[],"missingInformation":[],"warnings":[]}',
     JSON.stringify({

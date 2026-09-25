@@ -1,0 +1,19 @@
+{
+  "sourceTypes": ["curated-websites", "instagram"],
+  "startUrls": [
+    { "url": "https://www.instagram.com/example_organisation/" },
+    { "url": "https://www.instagram.com/p/example_post/" }
+  ],
+  "discoverFromProfiles": true,
+  "maxPostsPerProfile": 5,
+  "countries": ["Nigeria"],
+  "opportunityTypes": ["grant", "tender", "accelerator", "training"],
+  "includeExpired": false,
+  "maxResults": 20,
+  "ai": {
+    "enabled": false,
+    "provider": "openai",
+    "model": "gpt-4.1-mini",
+    "generateReport": false
+  }
+}

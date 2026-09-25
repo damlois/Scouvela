@@ -175,6 +175,44 @@
       "description": "Required only when AI matching is on. Stored as an Apify secret. Never logged or saved on records. You pay OpenAI directly.",
       "editor": "textfield",
       "isSecret": true
+    },
+    "sourceTypes": {
+      "title": "Discovery sources",
+      "type": "array",
+      "description": "Curated websites stay on by default. Add submitted public webpages or public Instagram pages when you want Scouvela to read those URLs itself.",
+      "editor": "select",
+      "default": ["curated-websites"],
+      "sectionCaption": "Discovery sources",
+      "items": {
+        "type": "string",
+        "enum": ["curated-websites", "custom-webpages", "instagram"],
+        "enumTitles": [
+          "Curated opportunity websites",
+          "Submitted public webpages",
+          "Public Instagram pages"
+        ]
+      }
+    },
+    "startUrls": {
+      "title": "Start URLs",
+      "type": "array",
+      "description": "Optional public webpage or Instagram URLs. Maximum 20. HTTP and HTTPS only. Localhost, private-network addresses, and embedded credentials are rejected. URLs are not used as code or selectors.",
+      "editor": "requestListSources",
+      "maxItems": 20
+    },
+    "discoverFromProfiles": {
+      "title": "Read recent public profile posts",
+      "type": "boolean",
+      "description": "When enabled, Scouvela may inspect a limited number of recent publicly visible posts from a submitted supported profile.",
+      "default": false
+    },
+    "maxPostsPerProfile": {
+      "title": "Maximum posts per profile",
+      "type": "integer",
+      "description": "Used only when reading recent public profile posts is enabled. Minimum 1, maximum 10.",
+      "minimum": 1,
+      "maximum": 10,
+      "default": 5
     }
   }
 }

@@ -4,6 +4,7 @@ import { calculateOpportunityStatus, normalizeDeadline, toIsoDate } from '../uti
 import { deterministicId } from '../utils/ids.js';
 import { emptyToUndefined, uniqueNonEmpty } from '../utils/text.js';
 import { canonicalizeUrl, toAbsoluteUrl } from '../utils/urls.js';
+import { verifyOpportunity } from '../verification/opportunity-verifier.js';
 
 function toOptional(value: string | undefined): string | undefined {
   return emptyToUndefined(value);
@@ -50,9 +51,38 @@ export function transformOpportunity(
   const applicationUrl = record.applicationUrl
     ? toAbsoluteUrl(record.applicationUrl, sourceUrl)
     : undefined;
+  const sourcePlatform = record.sourcePlatform ?? 'website';
+  const curatedSource =
+    record.curatedSource ?? (sourcePlatform === 'website' && !record.originalContentUrl);
+  const reviewedProviderDomain = record.reviewedProviderDomain === true || curatedSource;
+  const canonicalSource = canonicalizeUrl(sourceUrl);
+  const verification = verifyOpportunity({
+    applicationUrl,
+    applicationProcess: record.applicationProcess,
+    deadline,
+    provider,
+    eligibilityCount: record.eligibility?.length ?? 0,
+    benefitsCount: record.benefits?.length ?? 0,
+    accountName: record.accountName,
+    accountHandle: record.accountHandle,
+    text: description,
+    curatedWebsite: curatedSource,
+    reviewedProviderDomain,
+    applicationPageConfirmed: record.applicationPageConfirmed === true,
+  });
+  if (record.possibleRepost) {
+    verification.warnings = uniqueNonEmpty([
+      ...verification.warnings,
+      'The text may be a repost or a share of someone else’s announcement.',
+    ]) ?? verification.warnings;
+  }
+  verification.warnings = uniqueNonEmpty([
+    ...verification.warnings,
+    ...(record.extractionWarnings ?? []),
+  ]) ?? [];
 
   return {
-    id: deterministicId('opportunity', [provider, title, canonicalizeUrl(sourceUrl)]),
+    id: deterministicId('opportunity', [provider, title, canonicalSource]),
     title,
     provider,
     providerType: record.providerType,
@@ -70,10 +100,15 @@ export function transformOpportunity(
     eligibility: uniqueNonEmpty(record.eligibility ?? []),
     applicationProcess: toOptional(record.applicationProcess),
     applicationUrl,
-    sourceUrl: canonicalizeUrl(sourceUrl),
+    sourceUrl: canonicalSource,
     sourceName,
+    sourcePlatform,
+    contentType: record.contentType ?? (sourcePlatform === 'website' ? 'webpage' : undefined),
+    originalContentUrl: record.originalContentUrl ? canonicalizeUrl(record.originalContentUrl) : undefined,
+    discoveredFrom: uniqueNonEmpty([...(record.discoveredFrom ?? []), canonicalSource]),
     publishedAt: toOptional(record.publishedAt),
     deadline,
+    deadlineText: toOptional(record.deadlineText),
     status: calculateOpportunityStatus(deadline ?? record.deadline, new Date(), {
       applicationsOpen: record.applicationsOpen === true,
       ongoing: record.ongoing === true,
@@ -88,6 +123,7 @@ export function transformOpportunity(
       eligibility: record.eligibility,
       opportunityType: record.opportunityType,
     }),
+    verification,
     ai: null,
   };
 }

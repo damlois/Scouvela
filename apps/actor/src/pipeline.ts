@@ -1,8 +1,9 @@
 import { log } from 'apify';
 import { smeOpportunitySchema, type ParsedActorInput, type SmeOpportunity } from '@scouvela/shared';
-import { matchesSavedOpportunity } from './input/filters.js';
+import { matchesRawOpportunity, matchesSavedOpportunity } from './input/filters.js';
 import type { RawOpportunity } from './sources/types.js';
 import { opportunityDedupeKey, transformOpportunity } from './transformers/opportunity-transformer.js';
+import { dedupeOpportunities } from './utils/opportunity-dedupe.js';
 import { deduplicateByKey } from './utils/deduplicate.js';
 import type { RunStats } from './utils/stats.js';
 
@@ -25,17 +26,19 @@ export function finaliseOpportunities(
       continue;
     }
 
+    stats.recordsNormalized += 1;
     transformed.push(item);
   }
 
-  const { unique, duplicatesRemoved } = deduplicateByKey(transformed, (item) =>
+  const { unique: urlUnique, duplicatesRemoved } = deduplicateByKey(transformed, (item) =>
     opportunityDedupeKey({
       provider: item.provider,
       title: item.title,
       sourceUrl: item.sourceUrl,
     }),
   );
-  stats.duplicatesRemoved += duplicatesRemoved;
+  const { unique, duplicatesRemoved: crossSourceDuplicates } = dedupeOpportunities(urlUnique);
+  stats.duplicatesRemoved += duplicatesRemoved + crossSourceDuplicates;
 
   const validated: SmeOpportunity[] = [];
   for (const record of unique) {
@@ -49,11 +52,25 @@ export function finaliseOpportunities(
       continue;
     }
 
-    if (!matchesSavedOpportunity(parsed.data, input)) {
+    if (!matchesRawOpportunity(parsed.data, input)) {
+      stats.recordsFilteredByInput += 1;
+      continue;
+    }
+
+    if (!input.includeExpired && parsed.data.status === 'expired') {
+      stats.recordsFilteredExpired += 1;
+      continue;
+    }
+
+    if (!matchesSavedOpportunity(parsed.data, { ...input, includeExpired: true })) {
+      stats.recordsFilteredByInput += 1;
       continue;
     }
 
     validated.push(parsed.data);
+    if (parsed.data.sourcePlatform === 'instagram' && parsed.data.verification.status === 'incomplete') {
+      stats.incompleteSocialRecordsSaved += 1;
+    }
     if (validated.length >= input.maxResults) {
       break;
     }

@@ -37,6 +37,10 @@ This version crawls four reviewed public sources:
 
 South Africa and Rwanda are accepted as filters for later sources. They are not crawled in this version.
 
+## Public Instagram pages
+
+You can add `"instagram"` to `sourceTypes` and submit public post, reel, or profile URLs in `startUrls`. Scouvela fetches those pages itself. It does not log in, search all of Instagram, or bypass a login wall. If a page is withheld, that URL is skipped and the rest of the run continues. See the Actor README for the input example and verification statuses.
+
 ## How to run
 
 ```json

@@ -1,7 +1,9 @@
 import type {
+  ContentType,
   OpportunityType,
   ParsedActorInput,
   ProviderType,
+  SourcePlatform,
   TargetGroup,
   BusinessStage,
 } from '@scouvela/shared';
@@ -52,6 +54,18 @@ export type RawOpportunity = {
   ongoing?: boolean;
   isRemote?: boolean;
   language?: string;
+  sourcePlatform?: SourcePlatform;
+  contentType?: ContentType;
+  originalContentUrl?: string;
+  discoveredFrom?: string[];
+  deadlineText?: string;
+  curatedSource?: boolean;
+  reviewedProviderDomain?: boolean;
+  applicationPageConfirmed?: boolean;
+  accountName?: string;
+  accountHandle?: string;
+  possibleRepost?: boolean;
+  extractionWarnings?: string[];
 };
 
 export type SourceAdapter<TRaw = RawOpportunity> = {

@@ -19,6 +19,19 @@
       "applicationUrl": { "type": ["string", "null"], "title": "Application URL" },
       "sourceName": { "type": "string", "title": "Source name" },
       "sourceUrl": { "type": "string", "format": "uri", "title": "Source URL" },
+      "sourcePlatform": { "type": "string", "title": "Source platform" },
+      "contentType": { "type": ["string", "null"], "title": "Content type" },
+      "originalContentUrl": { "type": ["string", "null"], "title": "Original content URL" },
+      "verification": {
+        "type": "object",
+        "title": "Verification",
+        "properties": {
+          "status": { "type": "string" },
+          "score": { "type": "integer" },
+          "reasons": { "type": "array", "items": { "type": "string" } },
+          "warnings": { "type": "array", "items": { "type": "string" } }
+        }
+      },
       "scrapedAt": { "type": "string", "format": "date-time", "title": "Scraped at" }
     },
     "required": [
@@ -43,11 +56,13 @@
           "title",
           "provider",
           "opportunityType",
+          "sourcePlatform",
           "countries",
           "status",
           "deadline",
-          "confidence",
-          "sourceName",
+          "verification.status",
+          "verification.score",
+          "applicationUrl",
           "sourceUrl",
           "scrapedAt"
         ]
@@ -58,11 +73,13 @@
           "title": { "label": "Title" },
           "provider": { "label": "Provider" },
           "opportunityType": { "label": "Type" },
+          "sourcePlatform": { "label": "Platform" },
           "countries": { "label": "Countries" },
           "status": { "label": "Status" },
           "deadline": { "label": "Deadline" },
-          "confidence": { "label": "Confidence" },
-          "sourceName": { "label": "Source" },
+          "verification.status": { "label": "Verification" },
+          "verification.score": { "label": "Verification score" },
+          "applicationUrl": { "label": "Application URL" },
           "sourceUrl": { "label": "Source URL" },
           "scrapedAt": { "label": "Scraped" }
         }

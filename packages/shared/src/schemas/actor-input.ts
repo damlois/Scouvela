@@ -7,6 +7,7 @@ import {
   DEFAULT_OPENAI_MODEL,
   MVP_COUNTRIES,
   SEARCH_COUNTRIES,
+  SOURCE_TYPES,
   TARGET_GROUPS,
 } from '../constants.js';
 import { opportunityTypeSchema } from './opportunity.js';
@@ -37,8 +38,21 @@ export const actorAiInputSchema = z.object({
   generateReport: z.boolean().default(false),
 });
 
+const startUrlItemSchema = z.union([
+  z.string().min(1).max(2000),
+  z
+    .object({
+      url: z.string().min(1).max(2000),
+    })
+    .passthrough(),
+]);
+
 export const actorInputSchema = z
   .object({
+    sourceTypes: z.array(z.enum(SOURCE_TYPES)).min(1).max(3).default(['curated-websites']),
+    startUrls: z.array(startUrlItemSchema).max(20, 'startUrls cannot include more than 20 URLs.').default([]),
+    discoverFromProfiles: z.boolean().default(false),
+    maxPostsPerProfile: z.number().int().min(1).max(10).default(5),
     query: optionalTrimmed(300),
     countries: z.array(countrySchema).min(1).max(10).default([...MVP_COUNTRIES.slice(0, 3)]),
     regions: stringList(10, 80),
