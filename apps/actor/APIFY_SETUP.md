@@ -108,11 +108,11 @@ From the CLI, copy the Dataset ID from the run and use the Apify API or Console 
 
 ## 10. Store the API token securely
 
-- Keep `APIFY_TOKEN` in `apps/web/.env.local`, CI secrets, or Apify account settings only.
+- Keep `APIFY_TOKEN` in local `.env`, CI secrets, or Apify account settings only.
 - Never commit `.env`, `auth.json`, or a token in `SOURCES.md` / README samples.
 - Rotate the token if it is ever pasted into chat, a screenshot, or git.
 
-Reviewed source approval is now the default in `.actor/actor.json` so Store users can run without extra env setup. Local CLI runs still need `SCOUVELA_FUNDING_SOURCE_APPROVED` and `SCOUVELA_VENDOR_SOURCE_APPROVED` if you are not using those Actor defaults. Re-read `SOURCES.md` before you change sources.
+Reviewed source approval is now the default in `.actor/actor.json` so Store users can run without extra env setup. Local CLI runs still need the per-source `SCOUVELA_*_SOURCE_APPROVED` variables (or `SCOUVELA_FUNDING_SOURCE_APPROVED`) if you are not using those Actor defaults. Re-read `SOURCES.md` before you change sources.
 
 ## 11. Monetization (pay per event)
 
@@ -135,7 +135,7 @@ Do not add proxy or third-party API-key fields. Optional AI uses Apify’s OpenR
 2. Open **Publishing**. Title and description should match `.actor/actor.json`.
 3. Categories that fit: Lead generation, Other.
 4. The Store README is `.actor/README.md`. Confirm it renders after the build.
-5. Add a screenshot of a successful vendor Dataset (JSON/table) and one funding input form.
+5. Add a screenshot of a successful opportunity Dataset (JSON/table) and one input form.
 6. Fill **About** with the closing paragraph from `.actor/README.md`.
-7. Run the Store demo from Console with `examples/vendors-ikeja.json` (Finelib is the reliable live path) and link that run as the demo.
+7. Run a Store demo from Console with a curated-websites or Instagram example input and link that run as the demo.
 8. Submit or publish when the README, input form, Dataset views, and PPE events all match.

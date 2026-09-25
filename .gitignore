@@ -42,7 +42,7 @@ apps/actor/bundled-shared
 apify_storage
 .apify
 
-# Vercel
+# Local deploy tool caches
 .vercel
 
 # Playwright

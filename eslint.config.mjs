@@ -7,10 +7,8 @@ export default tseslint.config(
     ignores: [
       '**/node_modules/**',
       '**/dist/**',
-      '**/.next/**',
       '**/coverage/**',
       '**/storage/**',
-      'apps/web/**',
     ],
   },
   eslint.configs.recommended,

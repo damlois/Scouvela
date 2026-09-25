@@ -2,7 +2,7 @@
   "name": "scouvela",
   "version": "0.1.0",
   "private": true,
-  "description": "Apify Actor that discovers public growth opportunities for African SMEs.",
+  "description": "Apify Actor that discovers public growth opportunities for African SMEs from curated websites and public social pages.",
   "engines": {
     "node": ">=20"
   },
@@ -11,14 +11,12 @@
     "packages/*"
   ],
   "scripts": {
-    "predev": "node scripts/ensure-local-next-cache.mjs && npm run build -w @scouvela/shared",
-    "dev": "npm run dev -w @scouvela/web",
-    "dev:web": "npm run dev -w @scouvela/web",
-    "dev:actor": "npm start -w @scouvela/actor",
-    "build": "npm run build -w @scouvela/shared && npm run build -w @scouvela/web && npm run build -w @scouvela/actor",
-    "lint": "eslint packages/shared apps/actor && npm run lint -w @scouvela/web",
-    "typecheck": "npm run typecheck --workspaces --if-present",
-    "test": "npm run test --workspaces --if-present",
+    "dev": "npm run dev -w @scouvela/actor",
+    "dev:actor": "npm run dev -w @scouvela/actor",
+    "build": "npm run build -w @scouvela/shared && npm run build -w @scouvela/actor",
+    "typecheck": "npm run build -w @scouvela/shared && npm run typecheck -w @scouvela/actor",
+    "test": "npm run build -w @scouvela/shared && npm run test -w @scouvela/actor",
+    "lint": "eslint packages/shared apps/actor",
     "check:actor": "npm run build -w @scouvela/shared && npm run typecheck -w @scouvela/actor && npm test -w @scouvela/actor && npm run lint -w @scouvela/actor",
     "format": "prettier --write .",
     "format:check": "prettier --check ."
