@@ -218,6 +218,3 @@ export const boiNigeriaSource: SourceAdapter = {
   parseIndex: parseBoiIndex,
   parseDetail: parseBoiDetail,
 };
-
-/** @deprecated Use boiNigeriaSource */
-export const boiFundingSource = boiNigeriaSource;

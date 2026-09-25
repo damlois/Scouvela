@@ -1,9 +1,4 @@
 import { emptyToUndefined, normalizeWhitespace } from './text.js';
-import { canonicalizeUrl } from './urls.js';
-
-export function normalizeKeyPart(value: string | undefined): string {
-  return normalizeWhitespace(value ?? '').toLowerCase();
-}
 
 function isEmptyValue(value: unknown): boolean {
   if (value == null) {
@@ -81,47 +76,4 @@ export function deduplicateByKey<T extends Record<string, unknown>>(
   }
 
   return { unique: [...byKey.values()], duplicatesRemoved };
-}
-
-export function fundingDedupeKey(item: {
-  provider: string;
-  title: string;
-  sourceUrl: string;
-}): string {
-  const provider = normalizeKeyPart(item.provider);
-  const title = normalizeKeyPart(item.title);
-  if (!provider || !title || !item.sourceUrl.trim()) {
-    return '';
-  }
-
-  try {
-    return `${provider}::${title}::${canonicalizeUrl(item.sourceUrl)}`;
-  } catch {
-    return '';
-  }
-}
-
-export function vendorDedupeKey(item: {
-  name: string;
-  category: string;
-  locality?: string;
-  sourceUrl: string;
-}): string {
-  const name = normalizeKeyPart(item.name);
-  const category = normalizeKeyPart(item.category);
-  const locality = normalizeKeyPart(item.locality);
-
-  if (!name || !category) {
-    return '';
-  }
-
-  if (!locality) {
-    try {
-      return item.sourceUrl ? `unmerged::${canonicalizeUrl(item.sourceUrl)}` : '';
-    } catch {
-      return '';
-    }
-  }
-
-  return `${name}::${category}::${locality}`;
 }

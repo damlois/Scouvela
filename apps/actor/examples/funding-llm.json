@@ -1,6 +1,0 @@
-{
-  "mode": "funding",
-  "query": "SME",
-  "maxResults": 5,
-  "enrichWithLlm": true
-}

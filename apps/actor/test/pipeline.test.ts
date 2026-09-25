@@ -3,18 +3,16 @@ import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { describe, expect, it } from 'vitest';
 import { actorInputSchema, type ParsedActorInput } from '@scouvela/shared';
-import { inferFundingType, parseBoiDetailHtml, parseBoiIndexHtml } from '../src/sources/funding/boi-funding-source.js';
+import { inferFundingType, parseBoiDetailHtml, parseBoiIndexHtml } from '../src/sources/boi-nigeria.js';
 import { parseTefDetailHtml } from '../src/sources/tef-africa.js';
 import { parseGeaDetailHtml } from '../src/sources/gea-ghana.js';
 import { parseKcicDetailHtml } from '../src/sources/kcic-kenya.js';
-import { parseFinelibDetailHtml, parseFinelibIndexHtml } from '../src/sources/vendors/finelib-vendor-source.js';
-import { calculateFundingStatus, calculateOpportunityStatus, normalizeDeadline, parseDeadline } from '../src/utils/dates.js';
+import { calculateOpportunityStatus, normalizeDeadline, parseDeadline } from '../src/utils/dates.js';
 import { toAbsoluteUrl } from '../src/utils/urls.js';
 import { normalizeWhitespace } from '../src/utils/text.js';
 import { deterministicId } from '../src/utils/ids.js';
-import { transformVendorRecord } from '../src/transformers/vendor-transformer.js';
 import { opportunityDedupeKey, transformOpportunity } from '../src/transformers/opportunity-transformer.js';
-import { deduplicateByKey, fundingDedupeKey, vendorDedupeKey } from '../src/utils/deduplicate.js';
+import { deduplicateByKey } from '../src/utils/deduplicate.js';
 import { finaliseOpportunities } from '../src/pipeline.js';
 import { createRunStats } from '../src/utils/stats.js';
 
@@ -29,13 +27,6 @@ const fundingInput: ParsedActorInput = actorInputSchema.parse({
   countries: ['Nigeria'],
   maxResults: 5,
   includeExpired: true,
-});
-
-const vendorInput: ParsedActorInput = actorInputSchema.parse({
-  query: 'tailoring',
-  countries: ['Nigeria'],
-  regions: ['Ikeja'],
-  maxResults: 5,
 });
 
 describe('actor input validation', () => {
@@ -164,37 +155,10 @@ describe('programme page parsing', () => {
   });
 });
 
-describe('vendor listing parsing', () => {
-  it('keeps Ikeja listings and converts relative detail URLs', () => {
-    const parsed = parseFinelibIndexHtml(
-      readFixture('finelib-index.html'),
-      'https://www.finelib.com/cities/lagos/business/clothing/tailoring',
-      vendorInput,
-    );
-    expect(parsed.records).toHaveLength(1);
-    expect(parsed.records[0]?.name).toBe('Ikeja Stitch Studio');
-    expect(parsed.records[0]?.sourceUrl).toBe('https://www.finelib.com/listing/Ikeja-Stitch-Studio/1001/');
-    expect(parsed.records[0]?.phone).toContain('0802');
-  });
-});
-
-describe('vendor detail parsing', () => {
-  it('reads public business fields from a listing page', () => {
-    const record = parseFinelibDetailHtml(
-      readFixture('finelib-detail.html'),
-      'https://www.finelib.com/listing/Ikeja-Stitch-Studio/1001/',
-      vendorInput,
-    );
-    expect(record?.name).toBe('Ikeja Stitch Studio');
-    expect(record?.locality).toBe('Ikeja');
-    expect(record?.website).toBe('https://studio.example.com/');
-  });
-});
-
 describe('normalisation helpers', () => {
   it('converts relative URLs to absolute URLs', () => {
-    expect(toAbsoluteUrl('/listing/studio/1/', 'https://www.finelib.com')).toBe(
-      'https://www.finelib.com/listing/studio/1/',
+    expect(toAbsoluteUrl('/product/sme-loan/', 'https://www.boi.ng')).toBe(
+      'https://www.boi.ng/product/sme-loan/',
     );
   });
 
@@ -217,31 +181,31 @@ describe('normalisation helpers', () => {
   });
 });
 
-describe('funding status', () => {
+describe('opportunity status', () => {
   const now = new Date('2026-09-21T08:00:00.000Z');
 
   it('marks a deadline more than 14 days away as active', () => {
-    expect(calculateFundingStatus('2026-12-31', now)).toBe('active');
+    expect(calculateOpportunityStatus('2026-12-31', now)).toBe('active');
   });
 
   it('marks today and the next 14 days as closing-soon', () => {
-    expect(calculateFundingStatus('2026-09-21', now)).toBe('closing-soon');
-    expect(calculateFundingStatus('2026-10-05', now)).toBe('closing-soon');
+    expect(calculateOpportunityStatus('2026-09-21', now)).toBe('closing-soon');
+    expect(calculateOpportunityStatus('2026-10-05', now)).toBe('closing-soon');
   });
 
   it('marks a past deadline as expired', () => {
-    expect(calculateFundingStatus('2026-09-01', now)).toBe('expired');
+    expect(calculateOpportunityStatus('2026-09-01', now)).toBe('expired');
   });
 
   it('marks missing dates as unverified unless the page says applications are open', () => {
-    expect(calculateFundingStatus(undefined, now)).toBe('unverified');
-    expect(calculateFundingStatus(undefined, now, true)).toBe('active');
+    expect(calculateOpportunityStatus(undefined, now)).toBe('unverified');
+    expect(calculateOpportunityStatus(undefined, now, { applicationsOpen: true })).toBe('active');
     expect(calculateOpportunityStatus(undefined, now, { ongoing: true })).toBe('ongoing');
   });
 });
 
 describe('deduplication and merging', () => {
-  it('deduplicates funding records by provider, title and canonical URL', () => {
+  it('deduplicates opportunities by provider, title and source URL', () => {
     const records = [
       {
         provider: 'Bank of Industry',
@@ -252,34 +216,15 @@ describe('deduplication and merging', () => {
       {
         provider: 'bank of industry',
         title: 'sme working capital loan',
-        sourceUrl: 'https://www.boi.ng/product/sme-working-capital-loan',
+        sourceUrl: 'https://www.boi.ng/product/sme-working-capital-loan/',
         amount: 'Up to ₦5 million',
       },
     ];
 
-    const { unique, duplicatesRemoved } = deduplicateByKey(records, fundingDedupeKey);
+    const { unique, duplicatesRemoved } = deduplicateByKey(records, opportunityDedupeKey);
     expect(unique).toHaveLength(1);
     expect(duplicatesRemoved).toBe(1);
     expect(unique[0]?.amount).toBe('Up to ₦5 million');
-  });
-
-  it('deduplicates vendor records by name, category and locality', () => {
-    const records = [
-      { name: 'Ikeja Stitch Studio', category: 'tailoring', locality: 'Ikeja', sourceUrl: 'https://www.finelib.com/listing/a/1', phone: undefined as string | undefined },
-      { name: 'ikeja stitch studio', category: 'tailoring', locality: 'Ikeja', sourceUrl: 'https://www.finelib.com/listing/a/2', phone: '0802 000 1111' },
-    ];
-    const { unique } = deduplicateByKey(records, vendorDedupeKey);
-    expect(unique).toHaveLength(1);
-    expect(unique[0]?.phone).toBe('0802 000 1111');
-  });
-
-  it('does not merge vendor records when locality is missing', () => {
-    const records = [
-      { name: 'Shared Name', category: 'tailoring', sourceUrl: 'https://www.finelib.com/listing/a/1' },
-      { name: 'Shared Name', category: 'tailoring', sourceUrl: 'https://www.finelib.com/listing/b/2' },
-    ];
-    const { unique } = deduplicateByKey(records, vendorDedupeKey);
-    expect(unique).toHaveLength(2);
   });
 });
 
@@ -338,25 +283,5 @@ describe('pipeline validation', () => {
     expect(transformed?.fundingAmount).toBeUndefined();
     expect(transformed?.opportunityType).toBe('other');
     expect(opportunityDedupeKey(transformed!)).toContain('unspecified window');
-  });
-
-  it('labels vendors as source-listed', () => {
-    const vendor = transformVendorRecord({
-      name: 'Ikeja Stitch Studio',
-      category: 'tailoring',
-      state: 'Lagos',
-      locality: 'Ikeja',
-      sourceUrl: 'https://www.finelib.com/listing/Ikeja-Stitch-Studio/1001/',
-      sourceName: 'Finelib.com',
-    });
-    expect(vendor?.verificationStatus).toBe('source-listed');
-    expect(vendor?.id).toBe(
-      deterministicId('vendor', [
-        'Ikeja Stitch Studio',
-        'tailoring',
-        'Ikeja',
-        'https://www.finelib.com/listing/Ikeja-Stitch-Studio/1001',
-      ]),
-    );
   });
 });

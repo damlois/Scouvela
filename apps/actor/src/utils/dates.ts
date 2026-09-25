@@ -1,8 +1,6 @@
 import { CLOSING_SOON_DAYS, type OpportunityStatus } from '@scouvela/shared';
 import { emptyToUndefined } from './text.js';
 
-export type CalculatedFundingStatus = 'active' | 'closing-soon' | 'expired' | 'unverified';
-
 const MONTHS: Record<string, number> = {
   january: 0,
   february: 1,
@@ -69,34 +67,6 @@ export function utcDayDiff(deadline: Date, now: Date): number {
 export function daysUntil(deadline: Date, now: Date): number {
   const msPerDay = 1000 * 60 * 60 * 24;
   return Math.ceil((deadline.getTime() - now.getTime()) / msPerDay);
-}
-
-export function calculateFundingStatus(
-  deadline: string | undefined,
-  now: Date = new Date(),
-  applicationsOpen = false,
-): CalculatedFundingStatus {
-  const parsedDeadline = parseDeadline(deadline);
-
-  if (parsedDeadline) {
-    const remainingDays = utcDayDiff(parsedDeadline, now);
-
-    if (remainingDays < 0) {
-      return 'expired';
-    }
-
-    if (remainingDays <= CLOSING_SOON_DAYS) {
-      return 'closing-soon';
-    }
-
-    return 'active';
-  }
-
-  if (applicationsOpen) {
-    return 'active';
-  }
-
-  return 'unverified';
 }
 
 export function calculateOpportunityStatus(
