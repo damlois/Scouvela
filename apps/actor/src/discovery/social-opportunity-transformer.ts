@@ -1,6 +1,7 @@
 import type { ParsedActorInput, TargetGroup } from '@scouvela/shared';
 import type { OpportunityCandidate } from './opportunity-detector.js';
 import type { RawOpportunity } from '../sources/types.js';
+import { mergeSocialText } from '../social/instagram/instagram-caption.js';
 import { emptyToUndefined, uniqueNonEmpty } from '../utils/text.js';
 import { isPossibleRepost } from '../verification/opportunity-verifier.js';
 import { selectApplicationUrl } from './application-links.js';
@@ -27,18 +28,18 @@ export function transformSocialOpportunity(
   }
 
   const content = candidate.content;
-  const text = [content.caption, content.visibleText].filter(Boolean).join('\n');
+  const text = mergeSocialText(content.caption, content.visibleText);
   const description = emptyToUndefined(text);
   const provider = emptyToUndefined(content.accountName) ?? emptyToUndefined(content.accountHandle);
   if (!description || !provider) {
     return null;
   }
 
-  const deadlineDetails = extractDeadlineDetails(text, { publishedAt: content.publishedAt });
-  const countries = extractSupportedCountries(text);
+  const deadlineDetails = extractDeadlineDetails(description, { publishedAt: content.publishedAt });
+  const countries = extractSupportedCountries(description);
   const applicationUrl = selectApplicationUrl({
     pageUrl: content.sourceUrl,
-    text,
+    text: description,
     links: content.externalLinks.map((url) => ({ url })),
   });
   const countryWarning =
@@ -49,14 +50,16 @@ export function transformSocialOpportunity(
   return {
     title: titleFrom(description, provider),
     provider,
-    opportunityType: inferOpportunityType(text),
+    opportunityType: inferOpportunityType(description),
     description: description.slice(0, 4000),
     countries: countries.length > 0 ? countries : undefined,
-    regions: uniqueNonEmpty(REGION_NAMES.filter((region) => text.toLowerCase().includes(region.toLowerCase()))),
-    sectors: uniqueNonEmpty(sectorsIn(text)),
-    targetGroups: TARGET_RULES.filter((rule) => rule.pattern.test(text)).map((rule) => rule.group),
-    benefits: uniqueNonEmpty(labeledList(text, /benefits?[:\s]+([^.\n]+)/i)),
-    eligibility: uniqueNonEmpty(labeledList(text, /eligibility[:\s]+([^.\n]+)/i)),
+    regions: uniqueNonEmpty(
+      REGION_NAMES.filter((region) => description.toLowerCase().includes(region.toLowerCase())),
+    ),
+    sectors: uniqueNonEmpty(sectorsIn(description)),
+    targetGroups: TARGET_RULES.filter((rule) => rule.pattern.test(description)).map((rule) => rule.group),
+    benefits: uniqueNonEmpty(labeledList(description, /benefits?[:\s]+([^.\n]+)/i)),
+    eligibility: uniqueNonEmpty(labeledList(description, /eligibility[:\s]+([^.\n]+)/i)),
     applicationUrl,
     sourceUrl: content.sourceUrl,
     sourceName: provider,
@@ -72,7 +75,7 @@ export function transformSocialOpportunity(
     applicationPageConfirmed: false,
     accountName: content.accountName,
     accountHandle: content.accountHandle,
-    possibleRepost: isPossibleRepost(text),
+    possibleRepost: isPossibleRepost(description),
     extractionWarnings: [
       ...content.extractionWarnings,
       ...(deadlineDetails.warning ? [deadlineDetails.warning] : []),
@@ -82,9 +85,7 @@ export function transformSocialOpportunity(
 }
 
 function titleFrom(description: string, provider: string): string {
-  const withoutMeta = description.replace(/^\d+\s+likes?,?\s+\d+\s+comments?\s+-\s+/i, '');
-  const withoutAccountPrefix = withoutMeta.replace(/^[^:]+:\s*"/, '').replace(/"$/, '');
-  const sentence = withoutAccountPrefix.split(/(?<=[.!?])\s/)[0] ?? withoutAccountPrefix;
+  const sentence = description.split(/(?<=[.!?])\s/)[0] ?? description;
   const trimmed = sentence.replace(/\s+/g, ' ').trim();
   if (trimmed.length >= 12 && trimmed.length <= 180) {
     return trimmed;

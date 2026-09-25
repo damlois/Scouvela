@@ -1,4 +1,5 @@
 import type { SocialContent } from '../social/types.js';
+import { mergeSocialText } from '../social/instagram/instagram-caption.js';
 
 export interface OpportunityCandidate {
   isCandidate: boolean;
@@ -85,7 +86,7 @@ const NEGATIVE_SIGNALS = [
 
 export function detectOpportunity(content: SocialContent): OpportunityCandidate {
   const assessed = assessOpportunityText(
-    [content.caption, content.visibleText].filter(Boolean).join('\n'),
+    mergeSocialText(content.caption, content.visibleText) ?? '',
     content.hashtags,
   );
 

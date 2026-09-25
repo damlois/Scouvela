@@ -108,6 +108,49 @@ describe('Instagram HTML parsing', () => {
     expect(content.externalLinks.join(' ')).not.toMatch(/about\.meta\.com|about\.instagram\.com/);
   });
 
+  it('strips engagement preamble and stores the caption once', () => {
+    const content = parseInstagramHtml({
+      html: readFixture('instagram-tef-opportunity.html'),
+      submittedUrl: 'https://www.instagram.com/p/DVTz2EjjGOO/',
+      httpStatus: 200,
+      contentType: 'social-post',
+      extractedAt,
+    });
+
+    expect(content.caption).toBeDefined();
+    expect(content.caption).not.toMatch(/115 likes/i);
+    expect(content.caption).not.toMatch(/17 comments/i);
+    expect(content.caption).not.toMatch(/tonyelumelufoundation on February/i);
+    expect(content.visibleText).toBeUndefined();
+    expect(content.caption).toContain('US$5,000');
+    expect(content.caption).toContain('1 Day Left');
+    expect(content.caption).toContain('March 1, 2026');
+    expect(content.caption).toContain('#TEF2026');
+    expect(content.caption).toMatch(/www\.TEFConnect\.com/i);
+    expect(content.externalLinks.some((link) => link.includes('tefconnect.com'))).toBe(true);
+
+    const occurrences = content.caption!.split('African Entrepreneurs').length - 1;
+    expect(occurrences).toBe(1);
+  });
+
+  it('cleans a generic account engagement wrapper without hardcoding TEF', () => {
+    const content = parseInstagramHtml({
+      html: readFixture('instagram-og-engagement.html'),
+      submittedUrl: 'https://www.instagram.com/p/CaptionClean1/',
+      httpStatus: 200,
+      contentType: 'social-post',
+      extractedAt,
+    });
+
+    expect(content.accountHandle).toBe('example_opportunity_org');
+    expect(content.caption).not.toMatch(/42 likes/i);
+    expect(content.caption).not.toMatch(/9 comments/i);
+    expect(content.caption).toContain('US$5,000');
+    expect(content.caption).toContain('March 1, 2026');
+    expect(content.caption).toMatch(/www\.TEFConnect\.com/i);
+    expect(content.externalLinks.some((link) => link.includes('tefconnect.com'))).toBe(true);
+  });
+
   it('normalizes uppercase www domains with trailing punctuation', () => {
     const content = parseInstagramHtml({
       html: `<html><head>

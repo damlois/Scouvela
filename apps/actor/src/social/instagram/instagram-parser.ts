@@ -4,6 +4,7 @@ import { canonicalizeUrl } from '../../utils/urls.js';
 import { emptyToUndefined } from '../../utils/text.js';
 import { inspectPublicUrl } from '../url-intake.js';
 import type { SocialContent, SocialExtractionStatus } from '../types.js';
+import { cleanInstagramCaption } from './instagram-caption.js';
 
 const INSTAGRAM_HOSTS = new Set(['instagram.com', 'www.instagram.com']);
 const RESERVED_HANDLES = new Set([
@@ -66,11 +67,13 @@ export function parseInstagramHtml(options: {
     submittedUrl: options.submittedUrl,
     $,
   });
-  const caption = description;
-  const visibleText = emptyToUndefined($('article').text()) ?? caption;
-  const hashtags = readHashtags(`${caption ?? ''} ${visibleText ?? ''}`);
+  const caption = cleanInstagramCaption(description);
+  const articleText = cleanInstagramCaption(emptyToUndefined($('article').text()));
+  const visibleText = articleText && articleText !== caption ? articleText : undefined;
+  const textForSignals = [caption, visibleText].filter(Boolean).join('\n');
+  const hashtags = readHashtags(textForSignals);
   const externalLinks = uniqueLinks([
-    ...extractLinksFromText(`${caption ?? ''}\n${visibleText ?? ''}`),
+    ...extractLinksFromText(textForSignals),
     ...extractLinksFromText(collectScopedHrefs($)),
   ]);
   const sourceUrl = canonical && inspectPublicUrl(canonical).ok ? canonicalizeUrl(canonical) : options.submittedUrl;

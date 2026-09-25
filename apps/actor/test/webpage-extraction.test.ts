@@ -27,7 +27,8 @@ describe('webpage extraction accuracy', () => {
     expect(raw?.applicationUrl).toContain('tefconnect.com');
     expect(raw?.applicationUrl).not.toMatch(/#$/);
     expect(raw?.opportunityType).toBe('grant');
-    expect(saved?.verification.status).toBe('verified-application-page');
+    expect(saved?.verification.status).toBe('official-source');
+    expect(saved?.verification.reasons.join(' ')).toMatch(/not separately fetched/i);
     expect(saved?.countries).toEqual(['Africa-wide']);
   });
 

@@ -161,7 +161,7 @@ describe('deterministic social extraction', () => {
 });
 
 describe('verification scoring', () => {
-  it('marks a fetched application page as verified', () => {
+  it('marks a fetched and validated application page as verified', () => {
     const result = verifyOpportunity({
       applicationUrl: 'https://www.boi.ng/product/sme-grant',
       deadline: '2026-09-30',
@@ -172,11 +172,11 @@ describe('verification scoring', () => {
       applicationPageConfirmed: true,
     });
     expect(result.status).toBe('verified-application-page');
+    expect(result.reasons.join(' ')).toMatch(/successfully validated/i);
     expect(result.score).toBeGreaterThan(50);
-    expect(result.reasons.length).toBeGreaterThan(0);
   });
 
-  it('marks a reviewed provider domain with an application URL as verified', () => {
+  it('keeps reviewed domains at official-source until the application URL is fetched', () => {
     const result = verifyOpportunity({
       provider: 'Tony Elumelu Foundation',
       applicationUrl: 'https://www.tefconnect.com/',
@@ -187,8 +187,24 @@ describe('verification scoring', () => {
       reviewedProviderDomain: true,
       applicationPageConfirmed: false,
     });
-    expect(result.status).toBe('verified-application-page');
-    expect(result.reasons.join(' ')).toMatch(/official provider domain|application/i);
+    expect(result.status).toBe('official-source');
+    expect(result.reasons.join(' ')).toMatch(/not separately fetched/i);
+  });
+
+  it('marks a matching social account with an unfetched application URL as official-source', () => {
+    const result = verifyOpportunity({
+      provider: 'Tony Elumelu Foundation',
+      accountName: 'Tony Elumelu Foundation',
+      accountHandle: 'tonyelumelufoundation',
+      applicationUrl: 'https://www.tefconnect.com/',
+      deadline: '2026-03-01',
+      eligibilityCount: 0,
+      benefitsCount: 1,
+      curatedWebsite: false,
+      applicationPageConfirmed: false,
+    });
+    expect(result.status).toBe('official-source');
+    expect(result.status).not.toBe('verified-application-page');
   });
 
   it('marks a matching public account without an application page as an official source', () => {
@@ -363,6 +379,11 @@ describe('submitted URL failures stay isolated', () => {
     expect(kept[0]?.applicationUrl).toContain('tefconnect.com');
     expect(keptRaw[0]?.accountHandle).toBe('tonyelumelufoundation');
     expect(keptRaw[0]?.accountHandle).not.toBe('blog');
+    expect(kept[0]?.description).not.toMatch(/115 likes/i);
+    expect(kept[0]?.description).not.toMatch(/17 comments/i);
+    expect((kept[0]?.description.match(/African Entrepreneurs/g) ?? []).length).toBe(1);
+    expect(kept[0]?.description).toContain('US$5,000');
+    expect(kept[0]?.verification.status).toBe('official-source');
 
     const filteredStats = createRunStats();
     const filteredRaw = await discoverFromInput(

@@ -63,7 +63,7 @@ export function verifyOpportunity(facts: VerificationFacts): OpportunityVerifica
 
   if (facts.applicationPageConfirmed) {
     score += 15;
-    reasons.push('The application page was fetched successfully.');
+    reasons.push('The application destination was successfully validated.');
   } else if (officialDomain) {
     score += 15;
     reasons.push('The page is on a reviewed official provider domain.');
@@ -90,18 +90,17 @@ export function verifyOpportunity(facts: VerificationFacts): OpportunityVerifica
   let status: VerificationStatus = 'unverified';
   if (!hasApplicationMethod) {
     status = 'incomplete';
-  } else if (facts.applicationPageConfirmed || (officialDomain && Boolean(facts.applicationUrl))) {
+  } else if (facts.applicationPageConfirmed) {
     status = 'verified-application-page';
-    if (!facts.applicationPageConfirmed && officialDomain && facts.applicationUrl) {
-      reasons.push('An official provider page links to an application destination.');
-    }
-  } else if (accountMatches && !possibleRepost && Boolean(facts.applicationUrl)) {
-    status = 'verified-application-page';
-    reasons.push('The matching provider account links to an application destination.');
   } else if (possibleRepost || (!officialDomain && !accountMatches)) {
     status = 'unverified';
   } else if (officialDomain || accountMatches) {
     status = 'official-source';
+    if (facts.applicationUrl && !facts.applicationPageConfirmed) {
+      reasons.push(
+        'An application URL is listed, but the destination was not separately fetched and validated.',
+      );
+    }
   }
 
   if (reasons.length === 0) {
